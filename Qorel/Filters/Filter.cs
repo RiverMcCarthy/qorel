@@ -17,7 +17,7 @@ internal sealed record ScalarFilter<TKey, TValue>(FilterOperator Operator) : Fil
 }
 
 /// <summary>
-/// Represents a 
+/// Represents a filter that compares a field against a collection of values.
 /// </summary>
 /// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TValue"></typeparam>
