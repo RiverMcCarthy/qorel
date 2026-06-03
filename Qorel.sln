@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel", "Qorel\Qorel.csproj", "{78A5965D-4C06-4248-A95A-C71DC83B2B1F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.EntityFramework", "Qorel.EntityFramework\Qorel.EntityFramework.csproj", "{0C57BA71-8FD0-48A0-BA96-CFEF9988E18F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{78A5965D-4C06-4248-A95A-C71DC83B2B1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78A5965D-4C06-4248-A95A-C71DC83B2B1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78A5965D-4C06-4248-A95A-C71DC83B2B1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C57BA71-8FD0-48A0-BA96-CFEF9988E18F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C57BA71-8FD0-48A0-BA96-CFEF9988E18F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C57BA71-8FD0-48A0-BA96-CFEF9988E18F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C57BA71-8FD0-48A0-BA96-CFEF9988E18F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

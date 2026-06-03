@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+
+    <PackageId>Qorel.EntityFramework</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Entity Framework Core integration for Qorel. Provides QueryPipeline — a single class that validates filters, applies sorts, executes spatial bounds, and returns cursor-paginated results via EF Core with zero boilerplate.</Description>
+    <PackageTags>query;efcore;filtering;sorting;cursor;pagination;entityframework</PackageTags>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Qorel\Qorel.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
