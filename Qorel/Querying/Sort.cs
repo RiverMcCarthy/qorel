@@ -1,10 +1,10 @@
-namespace Qorel.Querying;
+namespace Qorel;
 
-internal interface ISort<TKey> where TKey : Enum
+/// <summary>
+/// A sort that has been checked against the model.
+/// </summary>
+internal readonly record struct Sort<TField>(TField Field, SortDirection Direction)
+    where TField : struct, Enum
 {
-    TKey FieldKey { get; }
-    SortDirection Direction { get; }
+    public bool Descending => Direction == SortDirection.Desc;
 }
-
-internal sealed record Sort<TKey>(TKey FieldKey, SortDirection Direction) : ISort<TKey>
-    where TKey : Enum;

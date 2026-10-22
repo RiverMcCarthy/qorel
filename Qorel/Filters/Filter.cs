@@ -1,36 +1,66 @@
-using Qorel.Fields;
-
-namespace Qorel.Filters;
-
-internal abstract record Filter<TKey, TValue> : IFilter<TKey>
-    where TKey : Enum
-{
-    public required Field<TKey, TValue> Field { get; init; }
-    public TKey FieldKey => Field.Key;
-    public abstract FilterOperator Operator { get; init; }
-}
-
-internal sealed record ScalarFilter<TKey, TValue>(FilterOperator Operator) : Filter<TKey, TValue>
-    where TKey : Enum
-{
-    public required TValue Value { get; init; }
-}
+namespace Qorel;
 
 /// <summary>
-/// Represents a filter that compares a field against a collection of values.
+/// A condition on one field, e.g. "Price is less than 100".
 /// </summary>
-/// <typeparam name="TKey"></typeparam>
-/// <typeparam name="TValue"></typeparam>
-/// <param name="Operator"></param>
-internal sealed record CollectionFilter<TKey, TValue>(FilterOperator Operator) : Filter<TKey, TValue>
-    where TKey : Enum
+/// <remarks>
+/// Get filters from the field handles, e.g. <c>ProductFields.Price.LessThan(100m)</c>, or from client input with
+/// <see cref="QueryModel{TEntity,TField}.ParseFilters(IEnumerable{FilterRequest{TField}})"/>.
+/// Two filters are equal when they have the same <see cref="CacheKey"/>.
+/// </remarks>
+/// <typeparam name="TField">The enum that names the fields.</typeparam>
+public abstract class Filter<TField> : IEquatable<Filter<TField>>
+    where TField : struct, Enum
 {
-    public required IReadOnlyList<TValue> Values { get; init; }
-}
+    private string? _cacheKey;
 
-/// <summary>
-/// Represents an <c>IsNull</c> or <c>IsNotNull</c> filter.
-/// No value is required, the filter is fully described by the operator and the field key.
-/// </summary>
-internal sealed record NullCheckFilter<TKey, TValue>(FilterOperator Operator) : Filter<TKey, TValue>
-    where TKey : Enum;
+    // Only FieldFilter derives from this, so every filter is one Qorel knows how to run.
+    private protected Filter(TField field, FilterOperator @operator)
+    {
+        Field = field;
+        Operator = @operator;
+    }
+
+    /// <summary>
+    /// The field being filtered.
+    /// </summary>
+    public TField Field { get; }
+
+    /// <summary>
+    /// How the field is compared.
+    /// </summary>
+    public FilterOperator Operator { get; }
+
+    /// <summary>
+    /// The filter written out the same way every time, whatever the culture, e.g. <c>Price.LessThan=100</c>.
+    /// Values that mean the same thing give the same key, such as <c>100</c> and <c>100.0</c>.
+    /// </summary>
+    public string CacheKey => _cacheKey ??= $"{Field}.{Operator}{FormatOperand()}";
+
+    /// <summary>
+    /// The type of the value the filter compares against.
+    /// </summary>
+    internal abstract Type ValueType { get; }
+
+    /// <summary>
+    /// Returns true when both filters have the same <see cref="CacheKey"/>.
+    /// </summary>
+    public bool Equals(Filter<TField>? other)
+        => other is not null && string.Equals(CacheKey, other.CacheKey, StringComparison.Ordinal);
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => Equals(obj as Filter<TField>);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => CacheKey.GetHashCode(StringComparison.Ordinal);
+
+    /// <summary>
+    /// Returns <see cref="CacheKey"/>.
+    /// </summary>
+    public override string ToString() => CacheKey;
+
+    /// <summary>
+    /// The value part of <see cref="CacheKey"/>, e.g. <c>=100</c>, or empty when the operator takes no value.
+    /// </summary>
+    private protected abstract string FormatOperand();
+}

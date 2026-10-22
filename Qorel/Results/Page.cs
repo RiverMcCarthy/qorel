@@ -1,19 +1,23 @@
-namespace Qorel.Results;
+namespace Qorel;
 
 /// <summary>
-/// A single page of results from a cursor-paginated query.
-/// Pass <see cref="NextCursor"/> as the <c>cursor</c> on the next request to fetch the subsequent page.
+/// One page of results. Send <see cref="NextCursor"/> back as the cursor to get the next page.
 /// </summary>
-/// <typeparam name="T">The DTO type of each result item.</typeparam>
+/// <typeparam name="T">The item type.</typeparam>
 public sealed record Page<T>
 {
+    /// <summary>
+    /// A page with no items and no next page.
+    /// </summary>
+    public static Page<T> Empty { get; } = new() { Items = [] };
+
     /// <summary>
     /// The items on this page.
     /// </summary>
     public required IReadOnlyList<T> Items { get; init; }
 
     /// <summary>
-    /// A cursor for fetching the next page. <c>null</c> when there are no further pages.
+    /// The cursor for the next page, or <c>null</c> when this is the last page.
     /// </summary>
     public string? NextCursor { get; init; }
 
@@ -23,17 +27,12 @@ public sealed record Page<T>
     public int Count => Items.Count;
 
     /// <summary>
-    /// True if there are more items.
+    /// True when there is another page.
     /// </summary>
     public bool HasNextPage => NextCursor is not null;
 
     /// <summary>
-    /// True if this page contains no items.
+    /// True when this page has no items.
     /// </summary>
     public bool IsEmpty => Items.Count == 0;
-
-    /// <summary>
-    /// Returns an empty page with no items and no next cursor.
-    /// </summary>
-    public static Page<T> Empty() => new() { Items = Array.Empty<T>() };
 }

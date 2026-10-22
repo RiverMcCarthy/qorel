@@ -20,3 +20,6 @@ BenchmarkDotNet.Artifacts/
 # OS
 .DS_Store
 Thumbs.db
+
+# Sample DB
+*.db

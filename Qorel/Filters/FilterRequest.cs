@@ -1,33 +1,34 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Qorel.Schema;
-using Qorel.Serialization;
-
-namespace Qorel.Filters;
+namespace Qorel;
 
 /// <summary>
-/// A raw, unvalidated filter specification received from a client request.
-/// The pipeline converts each request to a typed <see cref="IFilter{TKey}"/> after
-/// validating it against the <see cref="FieldSchema{TKey}"/>.
+/// A filter as a client sends it, before it has been checked against a <see cref="QueryModel{TEntity,TField}"/>.
 /// </summary>
-/// <typeparam name="TKey">Enum type identifying fields in the schema.</typeparam>
-[JsonConverter(typeof(FilterRequestJsonConverterFactory))]
-public sealed record FilterRequest<TKey> where TKey : Enum
+/// <remarks>
+/// In JSON: <c>{ "field": "Price", "operator": "LessThan", "value": 100 }</c>. Names are matched ignoring case, enums
+/// are sent by name, and <c>"fieldKey"</c> is accepted in place of <c>"field"</c>. <c>IsNull</c> and <c>IsNotNull</c>
+/// do not need a value.
+/// </remarks>
+/// <typeparam name="TField">The enum that names the fields.</typeparam>
+[JsonConverter(typeof(FilterRequestJsonConverter))]
+public sealed record FilterRequest<TField>
+    where TField : struct, Enum
 {
     /// <summary>
-    /// The field to apply the filter to.
+    /// The field to filter.
     /// </summary>
-    public required TKey FieldKey { get; init; }
+    public required TField Field { get; init; }
 
     /// <summary>
-    /// The filter operator to apply.
+    /// How to compare the field with <see cref="Value"/>.
     /// </summary>
     public required FilterOperator Operator { get; init; }
 
     /// <summary>
-    /// The raw JSON value.
-    /// For <c>IsOneOf</c> and <c>IsNotOneOf</c> operators this must be a JSON array, otherwise a scalar value.
+    /// The raw JSON value: an array for <c>IsOneOf</c> and <c>IsNotOneOf</c>, nothing for the null checks, and a single
+    /// value otherwise. It is read as the field's type during validation.
     /// </summary>
-    public required JsonElement Value { get; init; }
+    public JsonElement Value { get; init; }
 }

@@ -1,13 +1,25 @@
 <Project>
   <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
 
-    <!-- Package authorship — apply to all packable projects -->
+  <!-- The published packages. Tests, samples and benchmarks set IsPackable to false themselves. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Qorel' Or '$(MSBuildProjectName)' == 'Qorel.EntityFramework' Or '$(MSBuildProjectName)' == 'Qorel.AspNetCore' Or '$(MSBuildProjectName)' == 'Qorel.Testing' Or '$(MSBuildProjectName)' == 'Qorel.Testing.Assertions'">
+    <IsQorelPackage>true</IsQorelPackage>
+    <Version>2.0.0</Version>
+
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnablePackageValidation>true</EnablePackageValidation>
+
     <Authors>River McCarthy</Authors>
     <Copyright>Copyright © River McCarthy</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -17,7 +29,15 @@
     <PackageProjectUrl>https://github.com/rivermccarthy/qorel</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/rivermccarthy/qorel/blob/main/CHANGELOG.md</PackageReleaseNotes>
 
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsQorelPackage)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="/" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

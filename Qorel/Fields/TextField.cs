@@ -1,30 +1,31 @@
-using Qorel.Filters;
-
-namespace Qorel.Fields;
+namespace Qorel;
 
 /// <summary>
-/// A typed field definition for <see cref="string"/> values,
-/// extending <see cref="Field{TKey,TValue}"/> with substring filter operators.
+/// A handle on a <see cref="string"/> field. Adds substring filters to the ones on <see cref="Field{TField,TValue}"/>.
 /// </summary>
-/// <typeparam name="TKey">Enum type identifying fields in the schema.</typeparam>
-public sealed record TextField<TKey>(TKey Key) : Field<TKey, string>(Key)
-    where TKey : Enum
+/// <remarks>
+/// Text matching follows the database's collation unless the field is mapped with <c>IgnoreCase()</c>.
+/// </remarks>
+/// <typeparam name="TField">The enum that names the fields.</typeparam>
+/// <param name="key">The enum member that names this field.</param>
+public sealed class TextField<TField>(TField key) : Field<TField, string>(key)
+    where TField : struct, Enum
 {
     /// <summary>
-    /// Creates a <c>Contains</c> filter. Case sensitivity depends on the database.
+    /// Matches items whose value contains <paramref name="value"/>.
     /// </summary>
-    public IFilter<TKey> Contains(string value)
-        => new ScalarFilter<TKey, string>(FilterOperator.Contains) { Field = this, Value = value };
+    public Filter<TField> Contains(string value)
+        => FieldFilter<TField, string>.Create(Key, FilterOperator.Contains, value);
 
     /// <summary>
-    /// Creates a <c>StartsWith</c> prefix filter. Case sensitivity depends on the database.
+    /// Matches items whose value starts with <paramref name="value"/>.
     /// </summary>
-    public IFilter<TKey> StartsWith(string value)
-        => new ScalarFilter<TKey, string>(FilterOperator.StartsWith) { Field = this, Value = value };
+    public Filter<TField> StartsWith(string value)
+        => FieldFilter<TField, string>.Create(Key, FilterOperator.StartsWith, value);
 
     /// <summary>
-    /// Creates an <c>EndsWith</c> suffix filter. Case sensitivity depends on the database.
+    /// Matches items whose value ends with <paramref name="value"/>.
     /// </summary>
-    public IFilter<TKey> EndsWith(string value)
-        => new ScalarFilter<TKey, string>(FilterOperator.EndsWith) { Field = this, Value = value };
+    public Filter<TField> EndsWith(string value)
+        => FieldFilter<TField, string>.Create(Key, FilterOperator.EndsWith, value);
 }

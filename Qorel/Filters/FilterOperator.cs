@@ -1,71 +1,70 @@
 using System.Text.Json.Serialization;
 
-namespace Qorel.Filters;
+namespace Qorel;
 
 /// <summary>
-/// The comparison operator applied when filtering a field.
+/// How a filter compares a field with its value.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<FilterOperator>))]
 public enum FilterOperator
 {
     /// <summary>
-    /// Exact equality match.
+    /// The value equals the filter value.
     /// </summary>
     Equals,
 
     /// <summary>
-    /// Substring match — case sensitivity depends on the database.
-    /// Valid for <see cref="string"/> fields only.
+    /// The text contains the filter value. Text fields only.
     /// </summary>
     Contains,
 
     /// <summary>
-    /// Prefix match. Valid for <see cref="string"/> fields only.
+    /// The text starts with the filter value. Text fields only.
     /// </summary>
     StartsWith,
 
     /// <summary>
-    /// Suffix match. Valid for <see cref="string"/> fields only.
+    /// The text ends with the filter value. Text fields only.
     /// </summary>
     EndsWith,
 
     /// <summary>
-    /// Field value is in the provided collection.
+    /// The value is one of a list of values.
     /// </summary>
     IsOneOf,
 
     /// <summary>
-    /// Field value is not in the provided collection.
+    /// The value is none of a list of values.
     /// </summary>
     IsNotOneOf,
 
     /// <summary>
-    /// Strict greater-than. Valid for numeric and date fields.
+    /// The value is greater than the filter value. Ordered fields such as numbers and dates only.
     /// </summary>
     GreaterThan,
 
     /// <summary>
-    /// Greater-than-or-equal. Valid for numeric and date fields.
+    /// The value is greater than or equal to the filter value. Ordered fields only.
     /// </summary>
     GreaterThanOrEquals,
 
     /// <summary>
-    /// Strict less-than. Valid for numeric and date fields.
+    /// The value is less than the filter value. Ordered fields only.
     /// </summary>
     LessThan,
 
     /// <summary>
-    /// Less-than-or-equal. Valid for numeric and date fields.
+    /// The value is less than or equal to the filter value. Ordered fields only.
     /// </summary>
     LessThanOrEquals,
 
     /// <summary>
-    /// Field value is null. Valid for nullable fields only.
+    /// The value is null. Takes no filter value. Nullable fields only.
     /// </summary>
     IsNull,
 
     /// <summary>
-    /// Field value is not null. Valid for nullable fields only.
+    /// The value is not null. Takes no filter value. Nullable fields only.
     /// </summary>
     IsNotNull,
 }

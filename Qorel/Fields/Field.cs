@@ -1,44 +1,75 @@
-using Qorel.Filters;
-
-namespace Qorel.Fields;
+namespace Qorel;
 
 /// <summary>
-/// Base typed field definition supporting equality and membership filter expressions.
+/// A typed handle on one queryable field. Declare one per field as a static constant, then use it to map the field
+/// in a <see cref="QueryModel{TEntity,TField}"/> and to build filters in code, e.g. <c>ProductFields.Id.EqualTo(id)</c>.
 /// </summary>
-/// <typeparam name="TKey">Enum type identifying fields in the schema.</typeparam>
-/// <typeparam name="TValue">The type of the field value.</typeparam>
-public record Field<TKey, TValue>(TKey Key) : IField<TKey>
-    where TKey : Enum
+/// <remarks>
+/// Use <see cref="TextField{TField}"/> for strings and <see cref="ComparableField{TField,TValue}"/> for numbers and dates,
+/// so their extra filters are available.
+/// </remarks>
+/// <typeparam name="TField">The enum that names the fields.</typeparam>
+/// <typeparam name="TValue">The field's value type.</typeparam>
+/// <param name="key">The enum member that names this field.</param>
+public class Field<TField, TValue>(TField key)
+    where TField : struct, Enum
 {
-    /// <summary>
-    /// Creates an equality filter for this field.
-    /// </summary>
-    public IFilter<TKey> Equals(TValue value)
-        => new ScalarFilter<TKey, TValue>(FilterOperator.Equals) { Field = this, Value = value };
+    // True for reference types and Nullable<T>, the types IsNull and IsNotNull make sense for.
+    private static readonly bool _canBeNull = default(TValue) is null;
 
     /// <summary>
-    /// Creates an <c>IsOneOf</c> membership filter for this field.
+    /// The enum member that names this field.
     /// </summary>
-    public IFilter<TKey> IsOneOf(IReadOnlyList<TValue> values)
-        => new CollectionFilter<TKey, TValue>(FilterOperator.IsOneOf) { Field = this, Values = values };
+    public TField Key { get; } = key;
 
     /// <summary>
-    /// Creates an <c>IsNotOneOf</c> exclusion filter for this field.
+    /// Matches items whose value equals <paramref name="value"/>.
     /// </summary>
-    public IFilter<TKey> IsNotOneOf(IReadOnlyList<TValue> values)
-        => new CollectionFilter<TKey, TValue>(FilterOperator.IsNotOneOf) { Field = this, Values = values };
+    public Filter<TField> EqualTo(TValue value)
+        => FieldFilter<TField, TValue>.Create(Key, FilterOperator.Equals, value);
 
     /// <summary>
-    /// Creates an <c>IsNull</c> filter for this field. Only valid for nullable fields.
-    /// The schema will reject this operator for non-nullable value types.
+    /// Matches items whose value is one of <paramref name="values"/>.
     /// </summary>
-    public IFilter<TKey> IsNull()
-        => new NullCheckFilter<TKey, TValue>(FilterOperator.IsNull) { Field = this };
+    public Filter<TField> IsOneOf(params TValue[] values)
+        => IsOneOf((IEnumerable<TValue>)values);
+
+    /// <inheritdoc cref="IsOneOf(TValue[])"/>
+    public Filter<TField> IsOneOf(IEnumerable<TValue> values)
+        => FieldFilter<TField, TValue>.CreateList(Key, FilterOperator.IsOneOf, values);
 
     /// <summary>
-    /// Creates an <c>IsNotNull</c> filter for this field. Only valid for nullable fields.
-    /// The schema will reject this operator for non-nullable value types.
+    /// Matches items whose value is none of <paramref name="values"/>.
     /// </summary>
-    public IFilter<TKey> IsNotNull()
-        => new NullCheckFilter<TKey, TValue>(FilterOperator.IsNotNull) { Field = this };
+    public Filter<TField> IsNotOneOf(params TValue[] values)
+        => IsNotOneOf((IEnumerable<TValue>)values);
+
+    /// <inheritdoc cref="IsNotOneOf(TValue[])"/>
+    public Filter<TField> IsNotOneOf(IEnumerable<TValue> values)
+        => FieldFilter<TField, TValue>.CreateList(Key, FilterOperator.IsNotOneOf, values);
+
+    /// <summary>
+    /// Matches items whose value is null.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when <typeparamref name="TValue"/> cannot be null, e.g. <c>int</c>.</exception>
+    public Filter<TField> IsNull() => NullCheck(FilterOperator.IsNull);
+
+    /// <summary>
+    /// Matches items whose value is not null.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when <typeparamref name="TValue"/> cannot be null, e.g. <c>int</c>.</exception>
+    public Filter<TField> IsNotNull() => NullCheck(FilterOperator.IsNotNull);
+
+    /// <summary>
+    /// Returns the field's name.
+    /// </summary>
+    public override string ToString() => Key.ToString();
+
+    private FieldFilter<TField, TValue> NullCheck(FilterOperator op)
+    {
+        if (!_canBeNull)
+            throw new InvalidOperationException($"'{Key}' is a {typeof(TValue).Name} field, which is never null.");
+
+        return FieldFilter<TField, TValue>.CreateNullCheck(Key, op);
+    }
 }
