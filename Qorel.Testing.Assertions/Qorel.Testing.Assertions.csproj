@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Qorel.Testing.Assertions</PackageId>
+    <Description>Fluent assertions for Qorel: result.Should().Succeed(), result.Should().FailWithCode(...) and page.Should().HaveNextPage(). Built on AwesomeAssertions.</Description>
+    <PackageTags>query;testing;assertions;qorel;awesome-assertions</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Qorel\Qorel.csproj" />
+    <PackageReference Include="AwesomeAssertions" Version="7.2.1" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Qorel.Testing</PackageId>
+    <Description>Test helpers for Qorel: build FilterRequest and QueryRequest values without writing JSON by hand. For fluent assertions on QueryResult and Page, add Qorel.Testing.Assertions.</Description>
+    <PackageTags>query;testing;helpers;qorel</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Qorel\Qorel.csproj" />
+  </ItemGroup>
+</Project>
