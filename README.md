@@ -1,171 +1,159 @@
 # Qorel
 
-A type-safe query pipeline for .NET APIs.
+Filtering, sorting and cursor pagination for .NET APIs, with type checking.
 
-Define once which fields clients can filter and sort by, and Qorel handles the rest. It accepts filter, sort, and pagination requests from clients, validates them against your schema, and translates them into efficient EF Core queries with cursor-based keyset pagination.
+Most APIs end up with the same list endpoint code over and over: read the filters, check them, build the query, page it, return errors. Qorel does that part for you. You declare which fields clients can filter, sort and search on, and Qorel validates incoming requests against that and runs them through EF Core with keyset pagination.
 
-The goal is simple: stop rebuilding the same list-endpoint infrastructure for every API.
+- **Validated by default** - clients can only use the fields and operators you allow. A bad request comes back as a list of errors, not a 500.
+- **Keyset pagination** - no `OFFSET`, so deep pages are as fast as the first one and pages don't shift when data changes. Nullable and text sort columns work on every database.
+- **Parameterised SQL** - all values are sent as parameters, so EF Core and the database can reuse query plans.
+- **Search** - a `search` box that matches each word against the fields you pick.
+- **Server-side filters** - write tenant or ownership rules once as an `IServerFilter` and they get applied to every query. Clients can't see or remove them.
+- **Sensible defaults** - default sort and page sizes per model, plus limits so one request can't build a huge query.
+- **Three ways in** - a JSON body, query string parameters for cacheable GET endpoints, or a typed `QueryBuilder` from your own code.
+- **Works in memory too** - run the same filters over data you've already loaded and get the same results.
 
-> **Early days.** The core libraries are in place and building. Tests, sample applications, and full documentation are still in progress.
+## Packages
 
-## Features
+| Package                    | What it's for                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `Qorel`                    | Fields, models, requests, validation, results and in-memory filtering. No EF Core needed. |
+| `Qorel.EntityFramework`    | Runs queries with EF Core.                                                                 |
+| `Qorel.AspNetCore`         | HTTP responses (`200`, or a `422` listing every error) and query string requests.          |
+| `Qorel.Testing`            | Builds client requests in tests.                                                           |
+| `Qorel.Testing.Assertions` | Fluent assertions for `QueryResult` and `Page`.                                            |
 
-- **Schema-first validation** - clients can only filter and sort by the fields you've declared. Anything else is rejected before it reaches the database.
-- **Cursor-based keyset pagination** - deterministic and fast at any depth, no `OFFSET`.
-- **Two ways in** - a JSON `QueryRequest` from a client, or a typed `QueryBuilder` in code.
-- **Server-side filters** - mandatory predicates (access control, tenant isolation) the client can't see or override.
-- **Spatial bounds** - viewport queries via `BoundingBox`, behind a small `ISpatialFilter` interface.
+```bash
+dotnet add package Qorel.EntityFramework
+dotnet add package Qorel.AspNetCore
+```
 
-## Projects
+Needs .NET 8 and EF Core 9.
 
-- **`Qorel`** - the core library. Defines field schemas, query/filter/sort request models, and result types. It has no EF Core dependency, so it can live in your application or domain layer.
-- **`Qorel.EntityFramework`** - executes Qorel queries against EF Core and returns cursor-paginated results.
+## Quick start
 
-## The idea
-
-Start with an enum of the fields you want to expose, then declare a typed constant for each one. The field _type_ you pick is what gives you compile-time type-safe filters later. For example, a `ComparableField` lets you build `GreaterThan`, a `TextField` lets you build `Contains`, and so on:
+**1. Name your fields.** An enum gives each field the name clients use, and a typed handle per field lets you build filters in code that the compiler checks. `TextField` adds text filters and `ComparableField` adds range filters:
 
 ```csharp
-public enum ProductField { Id, Name, Price, Category, CreatedAt }
+[JsonConverter(typeof(JsonStringEnumConverter<ProductField>))] // so OpenAPI lists the names clients send
+public enum ProductField { Id, Name, Price, Category, CreatedAt, OwnerId }
 
 public static class ProductFields
 {
-    public static readonly Field<ProductField, Guid>                     Id        = new(ProductField.Id);
-    public static readonly TextField<ProductField>                       Name      = new(ProductField.Name);
-    public static readonly ComparableField<ProductField, decimal>        Price     = new(ProductField.Price);
-    public static readonly EnumField<ProductField, ProductCategory>      Category  = new(ProductField.Category);
+    public static readonly Field<ProductField, Guid> Id = new(ProductField.Id);
+    public static readonly TextField<ProductField> Name = new(ProductField.Name);
+    public static readonly ComparableField<ProductField, decimal> Price = new(ProductField.Price);
+    public static readonly Field<ProductField, ProductCategory> Category = new(ProductField.Category);
     public static readonly ComparableField<ProductField, DateTimeOffset> CreatedAt = new(ProductField.CreatedAt);
+    public static readonly Field<ProductField, Guid> OwnerId = new(ProductField.OwnerId);
 }
 ```
 
-| Field type                      | For                        | Operators it adds                                       |
-| ------------------------------- | -------------------------- | ------------------------------------------------------- |
-| `Field<TKey, TValue>`           | Guid, bool, any value type | `Equals`, `IsOneOf`, `IsNotOneOf`                       |
-| `TextField<TKey>`               | `string`                   | `Contains`, `StartsWith`, `EndsWith`                    |
-| `ComparableField<TKey, TValue>` | numbers, dates             | `GreaterThan`, `LessThan` (and the `OrEquals` variants) |
-| `EnumField<TKey, TEnum>`        | enums                      | `Equals`, `IsOneOf`, `IsNotOneOf`                       |
-
-A schema then says which of those fields clients are actually allowed to filter and sort - every incoming request is checked against it:
+**2. Describe the entity.** A query model maps each field to a property on the entity and says what clients can do with it. If you don't give a field any options, only your own code can use it:
 
 ```csharp
-public class ProductFieldSchema : FieldSchema<ProductField>
+public sealed class ProductQueryModel : QueryModel<Product, ProductField>
 {
-    protected override IEnumerable<FieldMetadata<ProductField>> Define() =>
-    [
-        For(ProductFields.Id),
-        For(ProductFields.Name).Filterable().Sortable(),
-        For(ProductFields.Price).Filterable().Sortable(),
-        For(ProductFields.Category).Filterable(),
-        For(ProductFields.CreatedAt).Filterable().Sortable(),
-    ];
+    protected override void Configure(QueryModelBuilder<Product, ProductField> model)
+    {
+        model.Id(ProductFields.Id, e => e.Id);
+        model.Map(ProductFields.Name, e => e.Name).Filterable().Sortable().Searchable().IgnoreCase();
+        model.Map(ProductFields.Price, e => e.Price).Filterable().Sortable();
+        model.Map(ProductFields.Category, e => e.Category).Filterable();
+        model.Map(ProductFields.CreatedAt, e => e.CreatedAt).Filterable().Sortable();
+        model.Map(ProductFields.OwnerId, e => e.OwnerId); // server-side filters only
+
+        model.DefaultSort(ProductFields.CreatedAt, SortDirection.Desc);
+    }
 }
 ```
 
-A field map then connects each field to a selector over your EF Core entity - no marker
-interfaces or base classes on the entity itself:
+**3. Register it.** The model gets checked here, so if you've made a mistake in it the app fails at startup:
 
 ```csharp
-public class ProductFieldMap : FieldMap<ProductEntity, ProductField>
+builder.Services.AddQorel()
+    .AddModel(new ProductQueryModel())
+    .AddEntityFramework<AppDbContext>();
+```
+
+Rules that every query has to follow, like "users only see their own products", are server filters. Register them like any other service and they're applied to every query:
+
+```csharp
+public sealed class OwnProducts(ICurrentUser user) : IServerFilter<Product>
 {
-    public override ProductField IdKey => ProductField.Id;
-
-    protected override void Build(FieldMapBuilder<ProductEntity, ProductField> map) => map
-        .Add(ProductFields.Id,        e => e.Id)
-        .Add(ProductFields.Name,      e => e.Name)
-        .Add(ProductFields.Price,     e => e.Price)
-        .Add(ProductFields.Category,  e => e.Category)
-        .Add(ProductFields.CreatedAt, e => e.CreatedAt);
+    public Expression<Func<Product, bool>> Predicate => product => product.OwnerId == user.Id;
 }
+
+builder.Services.AddScoped<IServerFilter<Product>, OwnProducts>();
 ```
 
-Register the pieces once at startup:
+**4. Query.** Inject `IQueryPipeline` and pass it the client's request:
 
 ```csharp
-services.AddQorel();
-services.AddQorelSchema<ProductFieldSchema, ProductField>();
-services.AddQorelPipeline<ProductEntity, ProductField, ProductFieldMap, AppDbContext>();
+app.MapPost("/products/query", async (
+    QueryRequest<ProductField> request,
+    IQueryPipeline<Product, ProductField> pipeline,
+    CancellationToken cancellationToken) =>
+{
+    QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
+        request,
+        e => new ProductDto(e.Id, e.Name, e.Price),
+        cancellationToken: cancellationToken);
+
+    return result.ToHttpResult();
+});
 ```
 
-From then on, the client POSTs a plain JSON `QueryRequest`:
+`ToHttpResult()` gives you a `200 OK` with the page, or a `422` problem details response with every error in the request. Both show up in OpenAPI without any extra setup.
+
+The client sends:
 
 ```json
 {
   "filters": [
-    { "fieldKey": "Category", "operator": "Equals", "value": "Electronics" },
-    { "fieldKey": "Price", "operator": "LessThanOrEquals", "value": 499.99 }
+    { "field": "Category", "operator": "Equals", "value": "Electronics" },
+    { "field": "Price", "operator": "LessThanOrEquals", "value": 499.99 }
   ],
-  "sorts": [{ "fieldKey": "Price", "direction": "Desc" }],
-  "pageSize": 20,
-  "cursor": null
+  "sorts": [{ "field": "Price", "direction": "Desc" }],
+  "search": "wireless",
+  "pageSize": 20
 }
 ```
 
-and your handler hands it straight to the pipeline:
+and gets a page of items back with a `nextCursor`. To get the next page, send the same request again with `"cursor": "<nextCursor>"`.
+
+If you want a GET endpoint so browsers and CDNs can cache it, bind `QueryParameters` from the query string instead:
 
 ```csharp
-QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
-    request, e => new ProductDto(e.Id, e.Name, e.Price, e.Category), ct: ct);
+app.MapGet("/products", async ([AsParameters] QueryParameters<ProductField> query, IQueryPipeline<Product, ProductField> pipeline) =>
+    (await pipeline.QueryAsync(query, e => new ProductDto(e.Id, e.Name, e.Price))).ToHttpResult());
 ```
 
-Qorel validates every filter and sort against the schema before it touches the database, turns
-them into SQL through EF Core, and returns a `Page<ProductDto>` with a `NextCursor`.
-Send that cursor back to get the next page.
+```
+GET /products?filters=[{"field":"Category","operator":"Equals","value":"Electronics"}]&sort=price:desc&search=wireless&pageSize=20
+```
 
-## Building queries in code
+## In code
 
-Client JSON isn't the only way in. When the filters are yours - a background job, an internal
-service, a test - you build them with `QueryBuilder` instead. The field constants give you
-strongly-typed factory methods, so the value type is checked at compile time and there's no
-schema-validation step to pay for:
+If the query comes from your own code and not a client, build it with typed filters:
 
 ```csharp
-QueryBuilder<ProductField> query = QueryBuilder<ProductField>.Create()
-    .Where(ProductFields.Category.Equals(ProductCategory.Electronics))
-    .Where(ProductFields.Price.LessThanOrEquals(499.99m))
-    .OrderByDescending(ProductField.Price)
-    .ThenBy(ProductField.CreatedAt)
-    .WithPageSize(20);
+var query = new QueryBuilder<ProductField>()
+    .Where(ProductFields.Category.EqualTo(ProductCategory.Electronics), ProductFields.Price.LessThan(500m))
+    .OrderByDescending(ProductFields.Price)
+    .WithPageSize(50);
 
-QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
-    query, e => new ProductDto(e.Id, e.Name, e.Price, e.Category), ct: ct);
+QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(query, e => new ProductDto(e.Id, e.Name, e.Price));
 ```
 
-Both entry points also take **server-side filters** - predicates you apply on top of whatever
-the client asked for, and that the client can never see or switch off. This is how you can add
-access control without trusting the request:
+## Documentation
 
-```csharp
-// OwnerId is in the field map but deliberately left out of the schema, so a client can't
-// filter on it, but the server always can.
-IFilter<ProductField> ownerOnly = ProductFields.OwnerId.Equals(currentUserId);
+- [Defining a model](docs/models.md): fields, operators, sorting, search, case sensitivity and spatial filters
+- [Querying](docs/querying.md): request formats, server filters, counts, results and errors, limits, and filtering in memory
+- [Pagination](docs/pagination.md): how keyset pagination and cursors work
+- [Testing](docs/testing.md): faking the pipeline and the test helper packages
+- [Architecture](docs/architecture.md): how the library fits together, if you want to work on it
 
-QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
-    request, e => new ProductDto(e.Id, e.Name, e.Price, e.Category),
-    serverFilters: [ownerOnly], ct: ct);
-```
+## License
 
-## How it works
-
-A few of the design decisions, since they're the interesting part:
-
-- **Keyset, not offset.** Paging uses an OR-of-ANDs keyset predicate across the sort columns,
-  with the primary key appended as a tiebreaker so the ordering is always total. Pages don't
-  drift or skip rows when data changes underneath you, and there's no `OFFSET` scan to slow
-  down on deep pages.
-- **One round-trip per page.** The sort-key values needed to build the _next_ cursor are
-  projected in the same `SELECT` as the page itself, so producing a cursor costs no extra
-  query.
-- **No reflection on the hot path.** Filters, sorts and field access are all `Expression`
-  trees, composed once and translated to SQL by EF Core. Reflection only happens at startup,
-  when the schema and field map are first built (and then frozen).
-- **Validation returns; it doesn't throw.** Invalid client input comes back as a
-  `QueryResult` carrying structured `ValidationError`s (unknown field, operator not allowed,
-  field not sortable etc.), so it can be mapped to a `422` instead of catching
-  exceptions. Even a malformed or tampered cursor surfaces as a validation error, never a 500.
-- **The core doesn't know about EF.** `Qorel` has no persistence dependency - the schema,
-  request and result types stand on their own. `Qorel.EntityFramework` is simply the first
-  execution backend.
-
-## Requirements
-
-.NET 8+ and EF Core 9.
+MIT. See [LICENSE](LICENSE).
