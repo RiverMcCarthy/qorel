@@ -8,8 +8,7 @@ public static class ErrorCodes
     /// <summary>
     /// The request names a field that does not exist, or that is only for server-side use.
     /// </summary>
-    /// <remarks>The value is <c>field.invalid</c>, kept from 1.x so existing clients still match it.</remarks>
-    public const string FieldUnknown = "field.invalid";
+    public const string FieldUnknown = "field.unknown";
 
     /// <summary>
     /// The field exists but is not marked <c>Filterable()</c>.

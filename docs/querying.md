@@ -30,7 +30,6 @@ A client sends a `QueryRequest<TField>` as a POST body, or the same thing as [qu
 - `direction` is `Asc` (the default) or `Desc`.
 - `search` is matched against the model's [searchable fields](models.md#search). Each word has to show up in at least one of them.
 - Values are read strictly: numbers have to be JSON numbers, and dates and Guids have to be strings. `"5"` for a number is an error, not 5.
-- `fieldKey` also works in place of `field`.
 
 Pass the request to the pipeline along with a projection, which runs in the database:
 
@@ -199,11 +198,11 @@ Page<ProductDto> page = result.GetValueOrThrow();
 
 `Map` transforms a successful value, and `Bind` chains on another step that can fail.
 
-Each `ValidationError` has a `Code`, a `Message` meant for developers, and the `Field` it's about (or `null`). Match on the code using the `ErrorCodes` constants, since messages might change. `field.invalid` is `ErrorCodes.FieldUnknown`, and the rest of the constants are named after their codes.
+Each `ValidationError` has a `Code`, a `Message` meant for developers, and the `Field` it's about (or `null`). Match on the code using the `ErrorCodes` constants, since messages might change. Each constant is named after its code, e.g. `field.unknown` is `ErrorCodes.FieldUnknown`.
 
 | Code                        | Cause                                                                                                                     |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `field.invalid`             | The field doesn't exist, or it's server-side only                                                                         |
+| `field.unknown`             | The field doesn't exist, or it's server-side only                                                                         |
 | `field.not_filterable`      | The field can't be filtered                                                                                               |
 | `field.not_sortable`        | The field can't be sorted                                                                                                 |
 | `operator.not_allowed`      | The field doesn't allow that operator                                                                                     |

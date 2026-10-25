@@ -24,7 +24,7 @@ internal sealed class SortRequestJsonConverter : JsonConverterFactory
 
             return new SortRequest<TField>
             {
-                Field = RequestJson.ReadEnum<TField>(json, "field", "fieldKey"),
+                Field = RequestJson.ReadEnum<TField>(json, "field"),
                 Direction = RequestJson.ReadOptionalEnum(json, "direction", SortDirection.Asc),
             };
         }

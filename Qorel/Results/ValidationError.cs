@@ -3,7 +3,7 @@ namespace Qorel;
 /// <summary>
 /// One thing wrong with a client's query.
 /// </summary>
-/// <param name="Code">A stable, machine-readable code from <see cref="ErrorCodes"/>, e.g. <c>field.invalid</c>.</param>
+/// <param name="Code">A stable, machine-readable code from <see cref="ErrorCodes"/>, e.g. <c>field.unknown</c>.</param>
 /// <param name="Message">A description for developers. It may change between versions, so match on <paramref name="Code"/>.</param>
 /// <param name="Field">The field the error is about, or <c>null</c> for errors about the whole request.</param>
 public sealed record ValidationError(string Code, string Message, string? Field = null)

@@ -6,8 +6,7 @@ namespace Qorel;
 /// A sort as a client sends it, before it has been checked against a <see cref="QueryModel{TEntity,TField}"/>.
 /// </summary>
 /// <remarks>
-/// In JSON: <c>{ "field": "Price", "direction": "Desc" }</c>. The direction defaults to <c>Asc</c>, and
-/// <c>"fieldKey"</c> is accepted in place of <c>"field"</c>.
+/// In JSON: <c>{ "field": "Price", "direction": "Desc" }</c>. The direction defaults to <c>Asc</c>.
 /// </remarks>
 /// <typeparam name="TField">The enum that names the fields.</typeparam>
 [JsonConverter(typeof(SortRequestJsonConverter))]

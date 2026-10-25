@@ -7,9 +7,8 @@ namespace Qorel;
 /// A filter as a client sends it, before it has been checked against a <see cref="QueryModel{TEntity,TField}"/>.
 /// </summary>
 /// <remarks>
-/// In JSON: <c>{ "field": "Price", "operator": "LessThan", "value": 100 }</c>. Names are matched ignoring case, enums
-/// are sent by name, and <c>"fieldKey"</c> is accepted in place of <c>"field"</c>. <c>IsNull</c> and <c>IsNotNull</c>
-/// do not need a value.
+/// In JSON: <c>{ "field": "Price", "operator": "LessThan", "value": 100 }</c>. Names are matched ignoring case and enums
+/// are sent by name. <c>IsNull</c> and <c>IsNotNull</c> don't need a value.
 /// </remarks>
 /// <typeparam name="TField">The enum that names the fields.</typeparam>
 [JsonConverter(typeof(FilterRequestJsonConverter))]

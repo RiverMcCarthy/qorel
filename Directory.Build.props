@@ -13,7 +13,7 @@
   <!-- The published packages. Tests, samples and benchmarks set IsPackable to false themselves. -->
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Qorel' Or '$(MSBuildProjectName)' == 'Qorel.EntityFramework' Or '$(MSBuildProjectName)' == 'Qorel.AspNetCore' Or '$(MSBuildProjectName)' == 'Qorel.Testing' Or '$(MSBuildProjectName)' == 'Qorel.Testing.Assertions'">
     <IsQorelPackage>true</IsQorelPackage>
-    <Version>2.0.0</Version>
+    <Version>1.0.0</Version>
 
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

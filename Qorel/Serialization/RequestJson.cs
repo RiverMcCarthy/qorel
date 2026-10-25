@@ -63,13 +63,13 @@ internal static class RequestJson
     /// Reads a required enum property, sent as a member name.
     /// </summary>
     /// <exception cref="JsonException">Thrown when the property is missing or is not a member name.</exception>
-    public static TEnum ReadEnum<TEnum>(JsonElement json, params string[] names)
+    public static TEnum ReadEnum<TEnum>(JsonElement json, string name)
         where TEnum : struct, Enum
     {
-        if (!TryGetProperty(json, names, out JsonElement property))
-            throw new JsonException($"'{names[0]}' is required.");
+        if (!TryGetProperty(json, [name], out JsonElement property))
+            throw new JsonException($"'{name}' is required.");
 
-        return ReadEnumValue<TEnum>(property, names[0]);
+        return ReadEnumValue<TEnum>(property, name);
     }
 
     /// <summary>

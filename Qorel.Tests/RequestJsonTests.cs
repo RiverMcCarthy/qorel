@@ -44,11 +44,6 @@ public class RequestJsonTests
     public void SortRequest_DirectionDefaultsToAsc()
         => JsonSerializer.Deserialize<SortRequest<TestField>>("""{ "field": "Price" }""")!.Direction.Should().Be(SortDirection.Asc);
 
-    [Fact]
-    public void SortRequest_AcceptsFieldKey()
-        => JsonSerializer.Deserialize<SortRequest<TestField>>("""{ "fieldKey": "Price", "direction": "desc" }""")
-            .Should().Be(new SortRequest<TestField> { Field = TestField.Price, Direction = SortDirection.Desc });
-
     [Theory]
     [InlineData("""{ "field": "Price", "direction": "Sideways" }""")]
     [InlineData("""{ "field": "Price", "direction": 1 }""")]

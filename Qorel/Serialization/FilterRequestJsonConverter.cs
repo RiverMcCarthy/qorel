@@ -8,7 +8,7 @@ namespace Qorel;
 /// </summary>
 /// <remarks>
 /// A custom converter, so the field enum is read by name without the app having to register
-/// <see cref="JsonStringEnumConverter"/>, and <c>"fieldKey"</c> still works for older clients.
+/// <see cref="JsonStringEnumConverter"/>.
 /// </remarks>
 internal sealed class FilterRequestJsonConverter : JsonConverterFactory
 {
@@ -27,7 +27,7 @@ internal sealed class FilterRequestJsonConverter : JsonConverterFactory
 
             return new FilterRequest<TField>
             {
-                Field = RequestJson.ReadEnum<TField>(json, "field", "fieldKey"),
+                Field = RequestJson.ReadEnum<TField>(json, "field"),
                 Operator = RequestJson.ReadEnum<FilterOperator>(json, "operator"),
                 Value = RequestJson.TryGetProperty(json, ["value"], out JsonElement value) ? value : default,
             };

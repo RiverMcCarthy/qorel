@@ -32,10 +32,6 @@ public class ParseFiltersTests
         result.Value.CacheKey.Should().Be("""Name.Contains="pro";Price.LessThan=5000""");
     }
 
-    [Fact]
-    public void FieldKey_IsAcceptedForOlderClients()
-        => Parse("""[{ "fieldKey": "Price", "operator": "Equals", "value": 1 }]""").IsSuccess.Should().BeTrue();
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
