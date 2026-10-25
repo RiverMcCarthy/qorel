@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.Testing.Assertions", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.Tests", "Qorel.Tests\Qorel.Tests.csproj", "{AF25D4A5-BE93-437C-827D-C0C39E47343F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.AspNetCore", "Qorel.AspNetCore\Qorel.AspNetCore.csproj", "{333164F2-86D7-4222-9C4E-BED0CED4871D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.AspNetCore.Tests", "Qorel.AspNetCore.Tests\Qorel.AspNetCore.Tests.csproj", "{65C1AC5E-927C-41B4-BA7C-2CEDA66A55A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{AF25D4A5-BE93-437C-827D-C0C39E47343F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF25D4A5-BE93-437C-827D-C0C39E47343F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF25D4A5-BE93-437C-827D-C0C39E47343F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{333164F2-86D7-4222-9C4E-BED0CED4871D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{333164F2-86D7-4222-9C4E-BED0CED4871D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{333164F2-86D7-4222-9C4E-BED0CED4871D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{333164F2-86D7-4222-9C4E-BED0CED4871D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65C1AC5E-927C-41B4-BA7C-2CEDA66A55A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65C1AC5E-927C-41B4-BA7C-2CEDA66A55A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65C1AC5E-927C-41B4-BA7C-2CEDA66A55A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65C1AC5E-927C-41B4-BA7C-2CEDA66A55A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

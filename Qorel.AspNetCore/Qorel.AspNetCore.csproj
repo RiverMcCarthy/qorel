@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Qorel.AspNetCore</PackageId>
+    <Description>ASP.NET Core helpers for Qorel: turn a QueryResult into a 200 response, or a 422 problem details response listing every validation error, with OpenAPI metadata for both.</Description>
+    <PackageTags>query;aspnetcore;problemdetails;validation;qorel</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\Qorel\Qorel.csproj" />
+  </ItemGroup>
+</Project>
