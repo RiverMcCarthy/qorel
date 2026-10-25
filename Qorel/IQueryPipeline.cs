@@ -7,8 +7,14 @@ namespace Qorel;
 /// pages <typeparamref name="TEntity"/>, projecting each item to the shape you ask for.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Inject this interface rather than a backend's implementation, so handlers do not depend on the data store and can be
 /// tested with a fake. Register a backend such as <c>AddEntityFramework</c> to get one.
+/// </para>
+/// <para>
+/// Every method applies the <see cref="IServerFilter{TEntity}"/>s registered for the entity. Use the
+/// <c>serverFilters</c> parameter when you need an extra filter for just one call.
+/// </para>
 /// </remarks>
 /// <typeparam name="TEntity">The entity type.</typeparam>
 /// <typeparam name="TField">The enum that names the fields.</typeparam>
@@ -22,8 +28,9 @@ public interface IQueryPipeline<TEntity, TField>
     /// <param name="request">The client's query.</param>
     /// <param name="projection">Shapes each item, e.g. <c>e =&gt; new ProductDto(e.Id, e.Name)</c>. It runs in the database.</param>
     /// <param name="serverFilters">
-    /// Filters added on top of the client's, which the client cannot see or remove, e.g. to limit results to the
-    /// current user. They can use any mapped field, including ones clients cannot.
+    /// Extra filters for this call only, added on top of the client's. The client can't see or remove them, and they
+    /// can use any mapped field, even ones clients can't. If every query needs the filter, register an
+    /// <see cref="IServerFilter{TEntity}"/> instead.
     /// </param>
     /// <param name="cancellationToken">Cancels the query.</param>
     /// <returns>The page, or the validation errors if the request is invalid.</returns>
@@ -85,9 +92,7 @@ public interface IQueryPipeline<TEntity, TField>
     /// </summary>
     /// <param name="id">The id. It must be the type the model's id is mapped as.</param>
     /// <param name="projection">Shapes the item. It runs in the database.</param>
-    /// <param name="serverFilters">
-    /// Filters the item must also match, e.g. to stop one tenant finding another's item by guessing its id.
-    /// </param>
+    /// <param name="serverFilters">Extra filters for this call only. The item has to match them too.</param>
     /// <param name="cancellationToken">Cancels the query.</param>
     /// <exception cref="ArgumentException">Thrown when <typeparamref name="TId"/> is not the id's type.</exception>
     Task<TResult?> FindAsync<TId, TResult>(

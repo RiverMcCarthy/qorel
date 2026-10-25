@@ -31,27 +31,15 @@ public sealed class QorelBuilder
     /// Builds and checks <paramref name="model"/>, then registers it as a singleton. A mistake in the model, such as a
     /// missing id or an operator its field type cannot support, throws here, so it shows up at startup.
     /// </summary>
-    /// <param name="model">The model.</param>
-    /// <param name="serverFilters">
-    /// Filters added to every query of the model, which clients cannot see or remove, e.g. to limit results to the
-    /// current tenant. They are worked out once per request scope from that scope's services. Calls can still pass
-    /// extra server filters of their own.
-    /// </param>
-    /// <example>
-    /// <code>
-    /// .AddModel(new ProductQueryModel(), serverFilters: services =&gt;
-    ///     [ProductFields.OwnerId.EqualTo(services.GetRequiredService&lt;ICurrentUser&gt;().Id)])
-    /// </code>
-    /// </example>
     /// <remarks>
     /// The model is registered as <see cref="QueryModel{TEntity,TField}"/> and as its own type, so either can be injected.
+    /// If every query for the model needs a filter, like scoping to the current user, register an
+    /// <see cref="IServerFilter{TEntity}"/>.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the model is misconfigured, or a model for the same entity and field enum is already registered.
     /// </exception>
-    public QorelBuilder AddModel<TEntity, TField>(
-        QueryModel<TEntity, TField> model,
-        Func<IServiceProvider, IEnumerable<Filter<TField>>>? serverFilters = null)
+    public QorelBuilder AddModel<TEntity, TField>(QueryModel<TEntity, TField> model)
         where TEntity : class
         where TField : struct, Enum
     {
@@ -67,7 +55,6 @@ public sealed class QorelBuilder
 
         Services.AddSingleton(model);
         Services.AddSingleton(model.GetType(), model);
-        Services.AddScoped(services => new ServerFilters<TEntity, TField>([.. serverFilters?.Invoke(services) ?? []]));
         return this;
     }
 }

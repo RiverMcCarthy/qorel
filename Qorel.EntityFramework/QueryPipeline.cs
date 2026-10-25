@@ -5,47 +5,50 @@ using Microsoft.EntityFrameworkCore;
 namespace Qorel.EntityFramework;
 
 /// <summary>
-/// Runs queries with EF Core. The model plans each query; this class adds the registered server filters, runs the plan against the
-/// entity set, and shapes the result.
+/// The EF Core pipeline. The model plans the query, then this runs it against the entities left after the server
+/// filters.
 /// </summary>
 /// <remarks>Scoped, like the <see cref="DbContext"/> it uses. Every query is read-only and untracked.</remarks>
 internal sealed class QueryPipeline<TEntity, TField>(
     QueryModel<TEntity, TField> model,
     DbContextAccessor db,
-    ServerFilters<TEntity, TField> registeredFilters)
+    IEnumerable<IServerFilter<TEntity>> registeredFilters)
     : IQueryPipeline<TEntity, TField>
     where TEntity : class
     where TField : struct, Enum
 {
-    private IQueryable<TEntity> Entities => db.Context.Set<TEntity>().AsNoTracking();
+    // All calls go through this, so the server filters can't be skipped.
+    private IQueryable<TEntity> Entities => registeredFilters.Aggregate(
+        db.Context.Set<TEntity>().AsNoTracking(),
+        (entities, filter) => entities.Where(filter.Predicate));
 
     public Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
         QueryRequest<TField> request,
         Expression<Func<TEntity, TResult>> projection,
         IEnumerable<Filter<TField>>? serverFilters = null,
         CancellationToken cancellationToken = default)
-        => ReadPageAsync(model.Plan(request, registeredFilters.With(serverFilters)), projection, cancellationToken);
+        => ReadPageAsync(model.Plan(request, serverFilters ?? []), projection, cancellationToken);
 
     public Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
         QueryBuilder<TField> query,
         Expression<Func<TEntity, TResult>> projection,
         IEnumerable<Filter<TField>>? serverFilters = null,
         CancellationToken cancellationToken = default)
-        => ReadPageAsync(model.Plan(query, registeredFilters.With(serverFilters)), projection, cancellationToken);
+        => ReadPageAsync(model.Plan(query, serverFilters ?? []), projection, cancellationToken);
 
     public Task<QueryResult<ItemCount>> CountAsync(
         QueryRequest<TField> request,
         IEnumerable<Filter<TField>>? serverFilters = null,
         int? maxCount = null,
         CancellationToken cancellationToken = default)
-        => CountAsync(model.Plan(request, registeredFilters.With(serverFilters)), maxCount, cancellationToken);
+        => CountAsync(model.Plan(request, serverFilters ?? []), maxCount, cancellationToken);
 
     public Task<QueryResult<ItemCount>> CountAsync(
         QueryBuilder<TField> query,
         IEnumerable<Filter<TField>>? serverFilters = null,
         int? maxCount = null,
         CancellationToken cancellationToken = default)
-        => CountAsync(model.Plan(query, registeredFilters.With(serverFilters)), maxCount, cancellationToken);
+        => CountAsync(model.Plan(query, serverFilters ?? []), maxCount, cancellationToken);
 
     public async Task<TResult?> FindAsync<TId, TResult>(
         TId id,
@@ -55,7 +58,7 @@ internal sealed class QueryPipeline<TEntity, TField>(
     {
         ArgumentNullException.ThrowIfNull(projection);
 
-        IEnumerable<Filter<TField>> filters = [model.FilterById(id), .. registeredFilters.With(serverFilters)];
+        IEnumerable<Filter<TField>> filters = [model.FilterById(id), .. serverFilters ?? []];
 
         return await model.ApplyFilters(Entities, filters)
             .Select(projection)
@@ -71,7 +74,7 @@ internal sealed class QueryPipeline<TEntity, TField>(
         ArgumentNullException.ThrowIfNull(filters);
         ArgumentNullException.ThrowIfNull(projection);
 
-        return await model.ApplyFilters(Entities, registeredFilters.With(filters))
+        return await model.ApplyFilters(Entities, filters)
             .Select(projection)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
