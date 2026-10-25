@@ -119,7 +119,7 @@ public sealed class QueryBuilder<TField>
     }
 
     /// <summary>
-    /// Sets how many items a page holds. Without it, <see cref="QorelOptions.DefaultPageSize"/> is used.
+    /// Sets how many items a page holds. Without it, the model's default page size is used.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="pageSize"/> is not positive.</exception>
     public QueryBuilder<TField> WithPageSize(int pageSize)

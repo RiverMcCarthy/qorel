@@ -16,6 +16,8 @@ public sealed class QueryModelBuilder<TEntity, TField>
     private readonly List<(TField Field, Func<MappedField<TEntity, TField>> Build)> _fields = [];
     private readonly List<Sort<TField>> _defaultSorts = [];
     private TField? _id;
+    private int? _defaultPageSize;
+    private int? _maxPageSize;
     private Func<BoundingBox, Expression<Func<TEntity, bool>>>? _spatialFilter;
 
     internal QueryModelBuilder(string modelName) => _modelName = modelName;
@@ -70,6 +72,37 @@ public sealed class QueryModelBuilder<TEntity, TField>
         => AddDefaultSort(field?.Key, direction);
 
     /// <summary>
+    /// Sets the page sizes for this model, in place of <see cref="QorelOptions.DefaultPageSize"/> and
+    /// <see cref="QorelOptions.MaxPageSize"/>. Leave either out to keep the option's value.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// model.PageSize(defaultSize: 200, maxSize: 1000); // e.g. points for a map
+    /// </code>
+    /// </example>
+    /// <exception cref="ArgumentException">Thrown when neither size is given.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when a size is less than 1.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the page sizes are already set.</exception>
+    public QueryModelBuilder<TEntity, TField> PageSize(int? defaultSize = null, int? maxSize = null)
+    {
+        if (defaultSize is null && maxSize is null)
+            throw new ArgumentException("Give a default size, a maximum size, or both.", nameof(defaultSize));
+
+        if (defaultSize is not null)
+            ArgumentOutOfRangeException.ThrowIfLessThan(defaultSize.Value, 1, nameof(defaultSize));
+
+        if (maxSize is not null)
+            ArgumentOutOfRangeException.ThrowIfLessThan(maxSize.Value, 1, nameof(maxSize));
+
+        if (_defaultPageSize is not null || _maxPageSize is not null)
+            throw new InvalidOperationException($"{_modelName} sets its page sizes more than once.");
+
+        _defaultPageSize = defaultSize;
+        _maxPageSize = maxSize;
+        return this;
+    }
+
+    /// <summary>
     /// Lets clients filter by a bounding box. <paramref name="predicate"/> returns the condition for one box, which is
     /// added to the query alongside the other filters.
     /// </summary>
@@ -103,6 +136,15 @@ public sealed class QueryModelBuilder<TEntity, TField>
         foreach (Sort<TField> sort in _defaultSorts.Where(sort => !fields.ContainsKey(sort.Field)))
             throw new InvalidOperationException($"{_modelName} sorts by '{sort.Field}' by default, but does not map it.");
 
+        int defaultPageSize = _defaultPageSize ?? options.DefaultPageSize;
+        int maxPageSize = _maxPageSize ?? options.MaxPageSize;
+
+        if (defaultPageSize > maxPageSize)
+        {
+            throw new InvalidOperationException(
+                $"{_modelName} has a default page size of {defaultPageSize}, more than its maximum of {maxPageSize}. Set both with PageSize(...).");
+        }
+
         // Declaration order, so ClientFields lists fields the way the model declares them.
         MappedField<TEntity, TField>[] inOrder = [.. _fields.Select(field => fields[field.Field])];
 
@@ -113,6 +155,8 @@ public sealed class QueryModelBuilder<TEntity, TField>
             Fields = fields,
             Id = fields[id],
             DefaultSorts = [.. _defaultSorts],
+            DefaultPageSize = defaultPageSize,
+            MaxPageSize = maxPageSize,
             SearchFields = [.. inOrder.Where(field => field.Client.IsSearchable)],
             ClientFields = [.. inOrder.Select(field => field.Client).Where(client => client.IsVisible)],
             SpatialFilter = _spatialFilter,

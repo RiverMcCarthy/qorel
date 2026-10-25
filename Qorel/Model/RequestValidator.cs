@@ -92,7 +92,7 @@ internal sealed class RequestValidator<TEntity, TField>(BuiltModel<TEntity, TFie
     /// Anything below 1 means "use the default", and anything above the maximum is lowered to it.
     /// </summary>
     public int ResolvePageSize(int? requested)
-        => requested is > 0 and int size ? Math.Min(size, Options.MaxPageSize) : Options.DefaultPageSize;
+        => requested is > 0 and int size ? Math.Min(size, model.MaxPageSize) : model.DefaultPageSize;
 
     public ValidationError[] CheckSearch(string? search)
     {

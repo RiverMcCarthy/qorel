@@ -25,6 +25,16 @@ internal sealed class BuiltModel<TEntity, TField>
     public required IReadOnlyList<Sort<TField>> DefaultSorts { get; init; }
 
     /// <summary>
+    /// The page size used when a query does not ask for one: the model's own, or <see cref="QorelOptions.DefaultPageSize"/>.
+    /// </summary>
+    public required int DefaultPageSize { get; init; }
+
+    /// <summary>
+    /// The largest page a client can ask for: the model's own, or <see cref="QorelOptions.MaxPageSize"/>.
+    /// </summary>
+    public required int MaxPageSize { get; init; }
+
+    /// <summary>
     /// The fields a request's search text is matched against.
     /// </summary>
     public required IReadOnlyList<MappedField<TEntity, TField>> SearchFields { get; init; }

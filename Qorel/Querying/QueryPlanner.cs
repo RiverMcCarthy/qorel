@@ -57,7 +57,7 @@ internal sealed class QueryPlanner<TEntity, TField>(BuiltModel<TEntity, TField> 
             throw new InvalidOperationException($"{model.Name} has no searchable fields. Mark some with Searchable() to search it.");
 
         QueryResult<KeysetPagination<TEntity, TField>> pagination =
-            Paginate(query.Sorts, query.Cursor, query.PageSize ?? model.Options.DefaultPageSize);
+            Paginate(query.Sorts, query.Cursor, query.PageSize ?? model.DefaultPageSize);
 
         ValidationError[] errors = [.. pagination.Errors, .. validator.CheckSpatialBounds(query.SpatialBounds)];
 

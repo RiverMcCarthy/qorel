@@ -128,6 +128,20 @@ public class QueryModelTests
         }).Should().Throw<InvalidOperationException>().WithMessage("*'Price' by default more than once*");
 
     [Fact]
+    public void PageSize_DefaultAboveMaximum_Throws()
+        => Building(m => m.PageSize(maxSize: 10))
+            .Should().Throw<InvalidOperationException>().WithMessage("*default page size of 20, more than its maximum of 10*");
+
+    [Fact]
+    public void PageSize_WithNeitherSize_Throws()
+        => Building(m => m.PageSize()).Should().Throw<ArgumentException>();
+
+    [Fact]
+    public void PageSize_SetTwice_Throws()
+        => Building(m => m.PageSize(defaultSize: 10).PageSize(maxSize: 50))
+            .Should().Throw<InvalidOperationException>().WithMessage("*page sizes more than once*");
+
+    [Fact]
     public void SpatialFilter_SetTwice_Throws()
         => Building(m => m.SpatialFilter(_ => e => true).SpatialFilter(_ => e => true))
             .Should().Throw<InvalidOperationException>();

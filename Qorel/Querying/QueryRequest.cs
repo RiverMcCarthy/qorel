@@ -32,8 +32,8 @@ public sealed record QueryRequest<TField>
     public string? Cursor { get; init; }
 
     /// <summary>
-    /// How many items to return. <c>null</c>, zero, or a negative number uses <see cref="QorelOptions.DefaultPageSize"/>,
-    /// and anything above <see cref="QorelOptions.MaxPageSize"/> is lowered to it.
+    /// How many items to return. <c>null</c>, zero, or a negative number uses the default page size, and anything above
+    /// the maximum is lowered to it. Both come from <see cref="QorelOptions"/>, unless the model sets its own.
     /// </summary>
     public int? PageSize { get; init; }
 
