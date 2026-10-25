@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.Tests", "Qorel.Tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.EntityFramework.Tests", "Qorel.EntityFramework.Tests\Qorel.EntityFramework.Tests.csproj", "{EC51FDCC-EA5B-408A-903E-2409E8CDE3A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.Benchmarks", "Qorel.Benchmarks\Qorel.Benchmarks.csproj", "{FA9BE7E5-3415-4511-91BD-CF1C97F5B0B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.Samples", "Qorel.Samples\Qorel.Samples.csproj", "{573725A6-A090-4794-ADBA-8579478CFA17}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.AspNetCore", "Qorel.AspNetCore\Qorel.AspNetCore.csproj", "{333164F2-86D7-4222-9C4E-BED0CED4871D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qorel.AspNetCore.Tests", "Qorel.AspNetCore.Tests\Qorel.AspNetCore.Tests.csproj", "{65C1AC5E-927C-41B4-BA7C-2CEDA66A55A1}"
@@ -52,6 +56,14 @@ Global
 		{EC51FDCC-EA5B-408A-903E-2409E8CDE3A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC51FDCC-EA5B-408A-903E-2409E8CDE3A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC51FDCC-EA5B-408A-903E-2409E8CDE3A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA9BE7E5-3415-4511-91BD-CF1C97F5B0B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA9BE7E5-3415-4511-91BD-CF1C97F5B0B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA9BE7E5-3415-4511-91BD-CF1C97F5B0B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA9BE7E5-3415-4511-91BD-CF1C97F5B0B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{573725A6-A090-4794-ADBA-8579478CFA17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{573725A6-A090-4794-ADBA-8579478CFA17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{573725A6-A090-4794-ADBA-8579478CFA17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{573725A6-A090-4794-ADBA-8579478CFA17}.Release|Any CPU.Build.0 = Release|Any CPU
 		{333164F2-86D7-4222-9C4E-BED0CED4871D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{333164F2-86D7-4222-9C4E-BED0CED4871D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{333164F2-86D7-4222-9C4E-BED0CED4871D}.Release|Any CPU.ActiveCfg = Release|Any CPU
