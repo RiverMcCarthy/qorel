@@ -3,8 +3,8 @@ using System.Text.Json;
 namespace Qorel;
 
 /// <summary>
-/// Reads requests from JSON. Properties of a request object such as <see cref="FilterRequest{TField}"/> Property names are matched
-/// ignoring case, whatever the serialiser options, so requests read the same in every app.
+/// Reads requests from JSON. Property names are matched ignoring case whatever the serializer options are, so requests
+/// read the same in every app.
 /// </summary>
 internal static class RequestJson
 {
@@ -39,19 +39,16 @@ internal static class RequestJson
     }
 
     /// <summary>
-    /// Finds the first property called any of <paramref name="names"/>.
+    /// Finds the property called <paramref name="name"/>, ignoring case.
     /// </summary>
-    public static bool TryGetProperty(JsonElement json, ReadOnlySpan<string> names, out JsonElement value)
+    public static bool TryGetProperty(JsonElement json, string name, out JsonElement value)
     {
         foreach (JsonProperty property in json.EnumerateObject())
         {
-            foreach (string name in names)
+            if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
             {
-                if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
-                {
-                    value = property.Value;
-                    return true;
-                }
+                value = property.Value;
+                return true;
             }
         }
 
@@ -66,7 +63,7 @@ internal static class RequestJson
     public static TEnum ReadEnum<TEnum>(JsonElement json, string name)
         where TEnum : struct, Enum
     {
-        if (!TryGetProperty(json, [name], out JsonElement property))
+        if (!TryGetProperty(json, name, out JsonElement property))
             throw new JsonException($"'{name}' is required.");
 
         return ReadEnumValue<TEnum>(property, name);
@@ -78,7 +75,7 @@ internal static class RequestJson
     /// <exception cref="JsonException">Thrown when the property is there but is not a member name.</exception>
     public static TEnum ReadOptionalEnum<TEnum>(JsonElement json, string name, TEnum defaultValue)
         where TEnum : struct, Enum
-        => TryGetProperty(json, [name], out JsonElement property) ? ReadEnumValue<TEnum>(property, name) : defaultValue;
+        => TryGetProperty(json, name, out JsonElement property) ? ReadEnumValue<TEnum>(property, name) : defaultValue;
 
     private static TEnum ReadEnumValue<TEnum>(JsonElement property, string name)
         where TEnum : struct, Enum

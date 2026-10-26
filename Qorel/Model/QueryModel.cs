@@ -23,8 +23,7 @@ namespace Qorel;
 /// <remarks>
 /// <see cref="Configure"/> runs once. Register the model with <see cref="QorelBuilder.AddModel{TEntity,TField}"/>, which
 /// runs it at startup so mistakes surface straight away. A model that is not registered, e.g. one created to filter data
-/// in memory, runs it on first use with the default <see cref="QorelOptions"/>. A model is immutable once built and safe
-/// to share between threads.
+/// in memory, runs it on first use with the default <see cref="QorelOptions"/>. A model is immutable once built.
 /// </remarks>
 /// <typeparam name="TEntity">The entity type, e.g. an EF Core entity or an in-memory record.</typeparam>
 /// <typeparam name="TField">The enum that names the fields.</typeparam>
@@ -32,34 +31,24 @@ public abstract class QueryModel<TEntity, TField>
     where TEntity : class
     where TField : struct, Enum
 {
-    private readonly Lazy<BuiltModel<TEntity, TField>> _built;
+    private readonly Lazy<Compiled> _compiled;
     private QorelOptions _options = new();
-    private RequestValidator<TEntity, TField>? _validator;
-    private QueryPlanner<TEntity, TField>? _planner;
 
     /// <summary>
     /// Creates the model. <see cref="Configure"/> runs later, when the model is registered or first used.
     /// </summary>
-    protected QueryModel()
-    {
-        _built = new(() =>
-        {
-            var builder = new QueryModelBuilder<TEntity, TField>(GetType().Name);
-            Configure(builder);
-            return builder.Build(_options);
-        });
-    }
+    protected QueryModel() => _compiled = new(Compile);
 
     /// <summary>
     /// The fields clients can filter, sort, or search by. Fields mapped only for server-side use are not included.
     /// </summary>
     public IReadOnlyList<ClientField<TField>> ClientFields => Built.ClientFields;
 
-    internal BuiltModel<TEntity, TField> Built => _built.Value;
+    internal BuiltModel<TEntity, TField> Built => _compiled.Value.Model;
 
-    private RequestValidator<TEntity, TField> Validator => _validator ??= new(Built);
+    private RequestValidator<TEntity, TField> Validator => _compiled.Value.Validator;
 
-    private QueryPlanner<TEntity, TField> Planner => _planner ??= new(Built, Validator);
+    private QueryPlanner<TEntity, TField> Planner => _compiled.Value.Planner;
 
     /// <summary>
     /// Checks client filters against the model and turns them into typed filters. Use it in a custom query that
@@ -70,8 +59,8 @@ public abstract class QueryModel<TEntity, TField>
         => Validator.ParseFilters(requests);
 
     /// <summary>
-    /// Reads a JSON array of filters and checks them, e.g. from a single <c>filters</c> query string parameter, which
-    /// keeps GET URLs simple. <c>null</c>, blank, or a JSON <c>null</c> means no filters.
+    /// Reads a JSON array of filters and checks them, e.g. from a single <c>filters</c> query string parameter.
+    /// <c>null</c>, blank, or a JSON <c>null</c> means no filters.
     /// </summary>
     /// <returns>
     /// The filters as a <see cref="FilterSet{TField}"/>, a <see cref="ErrorCodes.FiltersMalformed"/> error when the JSON
@@ -120,11 +109,11 @@ public abstract class QueryModel<TEntity, TField>
     /// <exception cref="InvalidOperationException">Thrown when the model has already been built.</exception>
     internal void Initialize(QorelOptions options)
     {
-        if (_built.IsValueCreated)
+        if (_compiled.IsValueCreated)
             throw new InvalidOperationException($"{GetType().Name} has already been built. Register a model before using it, and only once.");
 
         _options = options;
-        _ = _built.Value;
+        _ = _compiled.Value;
     }
 
     /// <summary>
@@ -144,4 +133,20 @@ public abstract class QueryModel<TEntity, TField>
     /// </summary>
     /// <exception cref="ArgumentException">Thrown when <typeparamref name="TId"/> is not the id's type.</exception>
     internal Filter<TField> FilterById<TId>(TId id) => Built.Id.CreateEqualsFilter(id);
+
+    // Runs Configure and sets up everything that works from the result. Lazy<T> makes sure this only happens once.
+    private Compiled Compile()
+    {
+        var builder = new QueryModelBuilder<TEntity, TField>(GetType().Name);
+        Configure(builder);
+
+        BuiltModel<TEntity, TField> model = builder.Build(_options);
+        var validator = new RequestValidator<TEntity, TField>(model);
+        return new Compiled(model, validator, new QueryPlanner<TEntity, TField>(model, validator));
+    }
+
+    private sealed record Compiled(
+        BuiltModel<TEntity, TField> Model,
+        RequestValidator<TEntity, TField> Validator,
+        QueryPlanner<TEntity, TField> Planner);
 }

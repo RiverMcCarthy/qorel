@@ -33,8 +33,7 @@ public sealed class QorelBuilder
     /// </summary>
     /// <remarks>
     /// The model is registered as <see cref="QueryModel{TEntity,TField}"/> and as its own type, so either can be injected.
-    /// If every query for the model needs a filter, like scoping to the current user, register an
-    /// <see cref="IServerFilter{TEntity}"/>.
+    /// If every query for the model needs a filter, like scoping to the current user, register an <see cref="IServerFilter{TEntity}"/>.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the model is misconfigured, or a model for the same entity and field enum is already registered.

@@ -29,7 +29,7 @@ internal sealed class FilterRequestJsonConverter : JsonConverterFactory
             {
                 Field = RequestJson.ReadEnum<TField>(json, "field"),
                 Operator = RequestJson.ReadEnum<FilterOperator>(json, "operator"),
-                Value = RequestJson.TryGetProperty(json, ["value"], out JsonElement value) ? value : default,
+                Value = RequestJson.TryGetProperty(json, "value", out JsonElement value) ? value : default,
             };
         }
 
