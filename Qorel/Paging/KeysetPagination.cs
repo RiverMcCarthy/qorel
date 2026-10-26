@@ -84,10 +84,10 @@ internal sealed class KeysetPagination<TEntity, TField>
     // The id goes last, unless it is already a sort key, so no two items tie and nothing is skipped or repeated.
     private static List<SortKey<TEntity, TField>> SortKeys(BuiltModel<TEntity, TField> model, IReadOnlyList<Sort<TField>> sorts)
     {
-        List<SortKey<TEntity, TField>> keys = [.. sorts.Select(sort => new SortKey<TEntity, TField>(model.GetField(sort.Field), sort.Descending))];
+        List<SortKey<TEntity, TField>> keys = [.. sorts.Select(sort => new SortKey<TEntity, TField>(model.GetField(sort.Field), sort.Direction))];
 
         if (!keys.Exists(key => key.Field == model.Id))
-            keys.Add(new SortKey<TEntity, TField>(model.Id, Descending: false));
+            keys.Add(new SortKey<TEntity, TField>(model.Id, SortDirection.Asc));
 
         return keys;
     }

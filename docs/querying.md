@@ -114,15 +114,17 @@ Register them as scoped so they can use the current user. You can register as ma
 
 If all you need is tenant isolation across the whole app, EF Core's global query filters (`HasQueryFilter`) are worth a look too, since they apply to every EF query and not just Qorel's.
 
-**Rules for a single call** can be passed as `serverFilters`. They're added on top of the registered ones:
+**Rules for a single call** can be passed as `additionalFilters`. They're added on top of the registered ones:
 
 ```csharp
 QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
     request,
     e => new ProductDto(e.Id, e.Name, e.Price),
-    serverFilters: [ProductFields.Status.EqualTo(ProductStatus.Published)],
+    additionalFilters: [ProductFields.Status.EqualTo(ProductStatus.Published)],
     cancellationToken: cancellationToken);
 ```
+
+A `QueryBuilder` query doesn't take them. It's already built in your code, so add the filters to it with `Where`.
 
 ## Counting
 

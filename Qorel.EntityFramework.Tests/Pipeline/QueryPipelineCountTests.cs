@@ -96,7 +96,7 @@ public class QueryPipelineCountTests
 
         QueryResult<ItemCount> result = await fixture.Pipeline.CountAsync(
             request,
-            serverFilters: [ProductFields.Price.LessThan(15m)]);
+            additionalFilters: [ProductFields.Price.LessThan(15m)]);
 
         result.Value.Count.Should().Be(1);
     }

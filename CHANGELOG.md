@@ -27,8 +27,8 @@ First release.
 - Free-text search over the fields marked `Searchable()`.
 - Optional bounding-box filters with `model.SpatialFilter(...)`.
 - `IServerFilter<TEntity>` for rules every query has to follow, like users only
-  seeing their own items. The `serverFilters` parameter adds extra filters to a
-  single call.
+  seeing their own items. The `additionalFilters` parameter adds extra filters
+  to a single call.
 - Request limits in `QorelOptions`: page sizes, filters, filter values, sorts,
   search length and cursor length.
 - `QueryModel.ParseFilters` and `ApplyFilters` for validating filters and

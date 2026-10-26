@@ -15,7 +15,7 @@ public static class QueryPipelineExtensions
         this IQueryPipeline<TEntity, TField> pipeline,
         QueryParameters<TField> parameters,
         Expression<Func<TEntity, TResult>> projection,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         CancellationToken cancellationToken = default)
         where TEntity : class
         where TField : struct, Enum
@@ -26,7 +26,7 @@ public static class QueryPipelineExtensions
         QueryResult<QueryRequest<TField>> request = parameters.ToRequest();
 
         return request.IsSuccess
-            ? await pipeline.QueryAsync(request.Value, projection, serverFilters, cancellationToken).ConfigureAwait(false)
+            ? await pipeline.QueryAsync(request.Value, projection, additionalFilters, cancellationToken).ConfigureAwait(false)
             : QueryResult<Page<TResult>>.Failure(request.Errors);
     }
 
@@ -37,7 +37,7 @@ public static class QueryPipelineExtensions
     public static async Task<QueryResult<ItemCount>> CountAsync<TEntity, TField>(
         this IQueryPipeline<TEntity, TField> pipeline,
         QueryParameters<TField> parameters,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         int? maxCount = null,
         CancellationToken cancellationToken = default)
         where TEntity : class
@@ -49,7 +49,7 @@ public static class QueryPipelineExtensions
         QueryResult<QueryRequest<TField>> request = parameters.ToRequest();
 
         return request.IsSuccess
-            ? await pipeline.CountAsync(request.Value, serverFilters, maxCount, cancellationToken).ConfigureAwait(false)
+            ? await pipeline.CountAsync(request.Value, additionalFilters, maxCount, cancellationToken).ConfigureAwait(false)
             : QueryResult<ItemCount>.Failure(request.Errors);
     }
 }

@@ -46,24 +46,4 @@ public class QueryPipelineListTests
 
         names.Should().BeEmpty();
     }
-
-    [Fact]
-    public async Task ListAsync_ServerFilters_AreApplied()
-    {
-        await using PipelineFixture fixture = await PipelineFixture.CreateAsync(SeedData());
-
-        QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
-            .WithPageSize(10)
-            .OrderBy(ProductFields.Stock);
-
-        Filter<ProductField>[] serverFilters = [ProductFields.Price.LessThan(25m)];
-
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
-            query,
-            e => e.Name,
-            serverFilters);
-
-        result.Value.Items.Should().HaveCount(2);
-        result.Value.Items.Should().NotContain("Gamma");
-    }
 }

@@ -22,7 +22,7 @@ QueryPlanner.Plan                       checks every part and collects every err
    |   |     \- MappedField.TryCreateFilter -> FieldValueJson    read a raw JSON value as the field's type
    |   \- KeysetPagination.Create        sort keys (requested, default, then id) and the decoded cursor
    v
-QueryPlan                               a checked query, with the server filters added
+QueryPlan                               a checked query, with any additional filters added
    |   Matching(source)                 filters + search + spatial bounds  -> used by pages and counts
    |   SelectPage(source, projection)   Matching -> KeysetPagination.SelectPage
    v

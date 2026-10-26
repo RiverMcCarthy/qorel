@@ -9,7 +9,7 @@ namespace Qorel;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A cursor is URL-safe base64 of <c>{"sort":"Price:desc,Id:asc","values":[19.99,"…"]}</c>. The sort is included so a
+/// A cursor is URL-safe base64 of <c>{"sort":"Price:Desc,Id:Asc","values":[19.99,"…"]}</c>. The sort is included so a
 /// cursor cannot be used with different sorts, where its values would mean something else.
 /// </para>
 /// <para>
@@ -74,7 +74,7 @@ internal static class Cursor
     private static string Signature<TEntity, TField>(IReadOnlyList<SortKey<TEntity, TField>> keys)
         where TEntity : class
         where TField : struct, Enum
-        => string.Join(',', keys.Select(key => $"{key.Field.Field}:{(key.Descending ? "desc" : "asc")}"));
+        => string.Join(',', keys.Select(key => $"{key.Field.Field}:{key.Direction}"));
 
     private static string ToBase64Url(byte[] bytes)
         => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');

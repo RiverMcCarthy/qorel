@@ -10,8 +10,8 @@ public class CursorTests
 
     private static readonly SortKey<TestEntity, TestField>[] _priceThenId =
     [
-        new(_model.GetField(TestField.Price), Descending: true),
-        new(_model.GetField(TestField.Id), Descending: false),
+        new(_model.GetField(TestField.Price), SortDirection.Desc),
+        new(_model.GetField(TestField.Id), SortDirection.Asc),
     ];
 
     private static readonly Guid _id = Guid.Parse("6f9619ff-8b86-d011-b42d-00c04fc964ff");
@@ -32,7 +32,7 @@ public class CursorTests
     [Fact]
     public void NullValues_RoundTrip()
     {
-        SortKey<TestEntity, TestField>[] nicknameThenId = [new(_model.GetField(TestField.Nickname), false), _priceThenId[1]];
+        SortKey<TestEntity, TestField>[] nicknameThenId = [new(_model.GetField(TestField.Nickname), SortDirection.Asc), _priceThenId[1]];
 
         string cursor = Cursor.Encode(nicknameThenId, [null, _id]);
 
@@ -43,7 +43,7 @@ public class CursorTests
     [Fact]
     public void Decode_ForDifferentSorts_Fails()
     {
-        SortKey<TestEntity, TestField>[] ascending = [_priceThenId[0] with { Descending = false }, _priceThenId[1]];
+        SortKey<TestEntity, TestField>[] ascending = [_priceThenId[0] with { Direction = SortDirection.Asc }, _priceThenId[1]];
 
         string cursor = Cursor.Encode(_priceThenId, [19.99m, _id]);
 

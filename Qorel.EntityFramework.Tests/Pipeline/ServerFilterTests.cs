@@ -90,14 +90,14 @@ public class ServerFilterTests
     }
 
     [Fact]
-    public async Task FiltersPassedToACall_AreAddedToTheRegisteredOnes()
+    public async Task AdditionalFilters_AreAddedToTheRegisteredOnes()
     {
         await using PipelineFixture fixture = await CreateAsync();
 
         QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
             new QueryRequest<ProductField>(),
             e => e.Name,
-            serverFilters: [ProductFields.Name.StartsWith("Mine")]);
+            additionalFilters: [ProductFields.Name.StartsWith("Mine")]);
 
         result.Value.Items.Should().BeEquivalentTo("Mine A", "Mine B");
     }

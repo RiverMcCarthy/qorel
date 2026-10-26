@@ -91,4 +91,36 @@ public class QueryBuilderTests
 
         query.Sorts.Should().Equal(new Sort<TestField>(TestField.Score, SortDirection.Desc), new Sort<TestField>(TestField.Price, SortDirection.Asc));
     }
+
+    [Fact]
+    public void Plan_FilterOnAnUnmappedField_Throws_EvenWithABadCursor()
+    {
+        QueryBuilder<TestField> query = new QueryBuilder<TestField>()
+            .Where(TestFields.Price.LessThan(10m))
+            .WithCursor("not-a-cursor");
+
+        Action act = () => new IdAndNameModel().Plan(query);
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*'Price' is not mapped*");
+    }
+
+    [Fact]
+    public void Plan_SortOnAnUnmappedField_Throws()
+    {
+        QueryBuilder<TestField> query = new QueryBuilder<TestField>().OrderBy(TestFields.Price);
+
+        Action act = () => new IdAndNameModel().Plan(query);
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*'Price' is not mapped*");
+    }
+
+    // Leaves Price unmapped.
+    private sealed class IdAndNameModel : QueryModel<TestEntity, TestField>
+    {
+        protected override void Configure(QueryModelBuilder<TestEntity, TestField> model)
+        {
+            model.Id(TestFields.Id, e => e.Id);
+            model.Map(TestFields.Name, e => e.Name).Filterable();
+        }
+    }
 }

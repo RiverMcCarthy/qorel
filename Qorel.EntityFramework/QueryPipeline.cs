@@ -25,40 +25,38 @@ internal sealed class QueryPipeline<TEntity, TField>(
     public Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
         QueryRequest<TField> request,
         Expression<Func<TEntity, TResult>> projection,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         CancellationToken cancellationToken = default)
-        => ReadPageAsync(model.Plan(request, serverFilters ?? []), projection, cancellationToken);
+        => ReadPageAsync(model.Plan(request, additionalFilters ?? []), projection, cancellationToken);
 
     public Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
         QueryBuilder<TField> query,
         Expression<Func<TEntity, TResult>> projection,
-        IEnumerable<Filter<TField>>? serverFilters = null,
         CancellationToken cancellationToken = default)
-        => ReadPageAsync(model.Plan(query, serverFilters ?? []), projection, cancellationToken);
+        => ReadPageAsync(model.Plan(query), projection, cancellationToken);
 
     public Task<QueryResult<ItemCount>> CountAsync(
         QueryRequest<TField> request,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         int? maxCount = null,
         CancellationToken cancellationToken = default)
-        => CountAsync(model.Plan(request, serverFilters ?? []), maxCount, cancellationToken);
+        => CountAsync(model.Plan(request, additionalFilters ?? []), maxCount, cancellationToken);
 
     public Task<QueryResult<ItemCount>> CountAsync(
         QueryBuilder<TField> query,
-        IEnumerable<Filter<TField>>? serverFilters = null,
         int? maxCount = null,
         CancellationToken cancellationToken = default)
-        => CountAsync(model.Plan(query, serverFilters ?? []), maxCount, cancellationToken);
+        => CountAsync(model.Plan(query), maxCount, cancellationToken);
 
     public async Task<TResult?> FindAsync<TId, TResult>(
         TId id,
         Expression<Func<TEntity, TResult>> projection,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(projection);
 
-        IEnumerable<Filter<TField>> filters = [model.FilterById(id), .. serverFilters ?? []];
+        IEnumerable<Filter<TField>> filters = [model.FilterById(id), .. additionalFilters ?? []];
 
         return await model.ApplyFilters(Entities, filters)
             .Select(projection)

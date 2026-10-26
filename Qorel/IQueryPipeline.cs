@@ -13,7 +13,7 @@ namespace Qorel;
 /// </para>
 /// <para>
 /// Every method applies the <see cref="IServerFilter{TEntity}"/>s registered for the entity. Use the
-/// <c>serverFilters</c> parameter when you need an extra filter for just one call.
+/// <c>additionalFilters</c> parameter when you need an extra filter for just one call.
 /// </para>
 /// </remarks>
 /// <typeparam name="TEntity">The entity type.</typeparam>
@@ -27,7 +27,7 @@ public interface IQueryPipeline<TEntity, TField>
     /// </summary>
     /// <param name="request">The client's query.</param>
     /// <param name="projection">Shapes each item, e.g. <c>e =&gt; new ProductDto(e.Id, e.Name)</c>. It runs in the database.</param>
-    /// <param name="serverFilters">
+    /// <param name="additionalFilters">
     /// Extra filters for this call only, added on top of the client's. The client can't see or remove them, and they
     /// can use any mapped field, even ones clients can't. If every query needs the filter, register an
     /// <see cref="IServerFilter{TEntity}"/> instead.
@@ -37,22 +37,21 @@ public interface IQueryPipeline<TEntity, TField>
     Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
         QueryRequest<TField> request,
         Expression<Func<TEntity, TResult>> projection,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns the page a query built in code asks for.
+    /// Returns the page a query built in code asks for. Add every filter it needs to the query with
+    /// <see cref="QueryBuilder{TField}.Where(Filter{TField}[])"/>.
     /// </summary>
     /// <param name="query">The query.</param>
     /// <param name="projection">Shapes each item. It runs in the database.</param>
-    /// <param name="serverFilters">Filters added on top of the query's.</param>
     /// <param name="cancellationToken">Cancels the query.</param>
     /// <returns>The page, or an error if the cursor or spatial bounds are invalid.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the query uses a field the model does not map.</exception>
     Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
         QueryBuilder<TField> query,
         Expression<Func<TEntity, TResult>> projection,
-        IEnumerable<Filter<TField>>? serverFilters = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -60,7 +59,7 @@ public interface IQueryPipeline<TEntity, TField>
     /// page size are ignored, so a client can send the same query it pages with.
     /// </summary>
     /// <param name="request">The client's query.</param>
-    /// <param name="serverFilters">Filters added on top of the client's, as for <c>QueryAsync</c>.</param>
+    /// <param name="additionalFilters">Filters added on top of the client's, as for <c>QueryAsync</c>.</param>
     /// <param name="maxCount">
     /// Stops counting once more than this many items match, which keeps counts cheap on big tables.
     /// </param>
@@ -68,7 +67,7 @@ public interface IQueryPipeline<TEntity, TField>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxCount"/> is less than 1 or is <see cref="int.MaxValue"/>.</exception>
     Task<QueryResult<ItemCount>> CountAsync(
         QueryRequest<TField> request,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         int? maxCount = null,
         CancellationToken cancellationToken = default);
 
@@ -76,14 +75,12 @@ public interface IQueryPipeline<TEntity, TField>
     /// Counts the items that match a query built in code. Its sorts, cursor, and page size are ignored.
     /// </summary>
     /// <param name="query">The query.</param>
-    /// <param name="serverFilters">Filters added on top of the query's.</param>
     /// <param name="maxCount">Stops counting once more than this many items match.</param>
     /// <param name="cancellationToken">Cancels the query.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxCount"/> is less than 1 or is <see cref="int.MaxValue"/>.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the query uses a field the model does not map.</exception>
     Task<QueryResult<ItemCount>> CountAsync(
         QueryBuilder<TField> query,
-        IEnumerable<Filter<TField>>? serverFilters = null,
         int? maxCount = null,
         CancellationToken cancellationToken = default);
 
@@ -92,13 +89,13 @@ public interface IQueryPipeline<TEntity, TField>
     /// </summary>
     /// <param name="id">The id. It must be the type the model's id is mapped as.</param>
     /// <param name="projection">Shapes the item. It runs in the database.</param>
-    /// <param name="serverFilters">Extra filters for this call only. The item has to match them too.</param>
+    /// <param name="additionalFilters">Extra filters for this call only. The item has to match them too.</param>
     /// <param name="cancellationToken">Cancels the query.</param>
     /// <exception cref="ArgumentException">Thrown when <typeparamref name="TId"/> is not the id's type.</exception>
     Task<TResult?> FindAsync<TId, TResult>(
         TId id,
         Expression<Func<TEntity, TResult>> projection,
-        IEnumerable<Filter<TField>>? serverFilters = null,
+        IEnumerable<Filter<TField>>? additionalFilters = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

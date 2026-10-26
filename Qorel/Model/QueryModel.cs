@@ -117,16 +117,16 @@ public abstract class QueryModel<TEntity, TField>
     }
 
     /// <summary>
-    /// Checks a client's request and plans it, with <paramref name="serverFilters"/> added. See <see cref="QueryPlanner{TEntity,TField}"/>.
+    /// Checks a client's request and plans it, with <paramref name="additionalFilters"/> added. See <see cref="QueryPlanner{TEntity,TField}"/>.
     /// </summary>
-    internal QueryResult<QueryPlan<TEntity, TField>> Plan(QueryRequest<TField> request, IEnumerable<Filter<TField>> serverFilters)
-        => Planner.Plan(request, serverFilters);
+    internal QueryResult<QueryPlan<TEntity, TField>> Plan(QueryRequest<TField> request, IEnumerable<Filter<TField>> additionalFilters)
+        => Planner.Plan(request, additionalFilters);
 
     /// <summary>
-    /// Plans a query built in code, with <paramref name="serverFilters"/> added.
+    /// Plans a query built in code.
     /// </summary>
-    internal QueryResult<QueryPlan<TEntity, TField>> Plan(QueryBuilder<TField> query, IEnumerable<Filter<TField>> serverFilters)
-        => Planner.Plan(query, serverFilters);
+    internal QueryResult<QueryPlan<TEntity, TField>> Plan(QueryBuilder<TField> query)
+        => Planner.Plan(query);
 
     /// <summary>
     /// A filter matching the item with <paramref name="id"/>.
