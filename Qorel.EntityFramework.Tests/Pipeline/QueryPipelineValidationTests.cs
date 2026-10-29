@@ -6,10 +6,10 @@ namespace Qorel.EntityFramework.Tests.Pipeline;
 /// </summary>
 public class QueryPipelineValidationTests
 {
-    private static async Task<QueryResult<Page<string>>> QueryAsync(QueryRequest<ProductField> request, Action<QorelOptions>? configure = null)
+    private static async Task<QueryResult<Page<string>>> GetPageAsync(QueryRequest<ProductField> request, Action<QorelOptions>? configure = null)
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync([], configure: configure);
-        return await fixture.Pipeline.QueryAsync(request, e => e.Name);
+        return await fixture.Pipeline.GetPageAsync(request, e => e.Name);
     }
 
     // --- Filters --------------------------------------------------------------
@@ -21,7 +21,7 @@ public class QueryPipelineValidationTests
             .Filter((ProductField)999, FilterOperator.Equals, "x")
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldUnknown);
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldUnknown);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class QueryPipelineValidationTests
             .Filter(ProductField.SupplierId, FilterOperator.Equals, Guid.NewGuid())
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldUnknown);
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldUnknown);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class QueryPipelineValidationTests
             .Filter(ProductField.Id, FilterOperator.Equals, Guid.NewGuid())
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldNotFilterable);
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldNotFilterable);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class QueryPipelineValidationTests
             .Filter(ProductField.Name, FilterOperator.GreaterThan, "alpha")
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.OperatorNotAllowed);
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.OperatorNotAllowed);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class QueryPipelineValidationTests
             .Filter(ProductField.Price, FilterOperator.Equals, "not a number")
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterValueInvalid && e.Field == "Price");
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterValueInvalid && e.Field == "Price");
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class QueryPipelineValidationTests
             .Filter(ProductField.Category, FilterOperator.Equals, "Furniture")
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterValueInvalid);
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterValueInvalid);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class QueryPipelineValidationTests
             .Filter(ProductField.Stock, FilterOperator.IsOneOf, 5)
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterValueInvalid);
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterValueInvalid);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class QueryPipelineValidationTests
     {
         var request = new QueryRequest<ProductField> { Filters = [null!] };
 
-        (await QueryAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FiltersMalformed);
+        (await GetPageAsync(request)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FiltersMalformed);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class QueryPipelineValidationTests
             .Filter(ProductField.Stock, FilterOperator.LessThan, 9)
             .Build();
 
-        (await QueryAsync(request, o => o.MaxFilters = 1)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FiltersTooMany);
+        (await GetPageAsync(request, o => o.MaxFilters = 1)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FiltersTooMany);
     }
 
     [Fact]
@@ -111,34 +111,34 @@ public class QueryPipelineValidationTests
             .FilterList(ProductField.Stock, FilterOperator.IsOneOf, Enumerable.Range(0, 3))
             .Build();
 
-        (await QueryAsync(request, o => o.MaxFilterValues = 2)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterTooManyValues);
+        (await GetPageAsync(request, o => o.MaxFilterValues = 2)).Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FilterTooManyValues);
     }
 
     // --- Sorts ----------------------------------------------------------------
 
     [Fact]
     public async Task Sort_UnknownField_ReturnsFieldUnknown()
-        => (await QueryAsync(new QueryRequestBuilder<ProductField>().Sort((ProductField)999).Build()))
+        => (await GetPageAsync(new QueryRequestBuilder<ProductField>().Sort((ProductField)999).Build()))
             .Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldUnknown);
 
     [Fact]
     public async Task Sort_NotSortable_ReturnsFieldNotSortable()
-        => (await QueryAsync(new QueryRequestBuilder<ProductField>().Sort(ProductField.Category).Build()))
+        => (await GetPageAsync(new QueryRequestBuilder<ProductField>().Sort(ProductField.Category).Build()))
             .Errors.Should().ContainSingle(e => e.Code == ErrorCodes.FieldNotSortable);
 
     [Fact]
     public async Task Sort_SameFieldTwice_ReturnsSortDuplicate()
-        => (await QueryAsync(new QueryRequestBuilder<ProductField>().Sort(ProductField.Price).Sort(ProductField.Price, SortDirection.Desc).Build()))
+        => (await GetPageAsync(new QueryRequestBuilder<ProductField>().Sort(ProductField.Price).Sort(ProductField.Price, SortDirection.Desc).Build()))
             .Errors.Should().ContainSingle(e => e.Code == ErrorCodes.SortDuplicate);
 
     [Fact]
     public async Task Sort_TooMany_ReturnsSortsTooMany()
-        => (await QueryAsync(new QueryRequestBuilder<ProductField>().Sort(ProductField.Price).Sort(ProductField.Stock).Build(), o => o.MaxSorts = 1))
+        => (await GetPageAsync(new QueryRequestBuilder<ProductField>().Sort(ProductField.Price).Sort(ProductField.Stock).Build(), o => o.MaxSorts = 1))
             .Errors.Should().ContainSingle(e => e.Code == ErrorCodes.SortsTooMany);
 
     [Fact]
     public async Task Sort_NullEntry_ReturnsSortsMalformed()
-        => (await QueryAsync(new QueryRequest<ProductField> { Sorts = [null!] }))
+        => (await GetPageAsync(new QueryRequest<ProductField> { Sorts = [null!] }))
             .Errors.Should().ContainSingle(e => e.Code == ErrorCodes.SortsMalformed);
 
     // --- The request as a whole -----------------------------------------------
@@ -152,12 +152,12 @@ public class QueryPipelineValidationTests
             .Sort(ProductField.Category)
             .Build();
 
-        (await QueryAsync(request)).Errors.Should().HaveCount(3);
+        (await GetPageAsync(request)).Errors.Should().HaveCount(3);
     }
 
     [Fact]
     public async Task NullLists_AreTreatedAsEmpty()
-        => (await QueryAsync(new QueryRequest<ProductField> { Filters = null!, Sorts = null! })).IsSuccess.Should().BeTrue();
+        => (await GetPageAsync(new QueryRequest<ProductField> { Filters = null!, Sorts = null! })).IsSuccess.Should().BeTrue();
 
     [Fact]
     public async Task PageSize_AboveMaximum_IsLowered()
@@ -165,7 +165,7 @@ public class QueryPipelineValidationTests
         IEnumerable<ProductEntity> seed = Enumerable.Range(1, 5).Select(i => new ProductEntity { Name = $"P{i}" });
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(seed, configure: o => (o.DefaultPageSize, o.MaxPageSize) = (2, 3));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField> { PageSize = 9999 }, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField> { PageSize = 9999 }, e => e.Name);
 
         result.Value.Items.Should().HaveCount(3);
     }
@@ -179,7 +179,7 @@ public class QueryPipelineValidationTests
         IEnumerable<ProductEntity> seed = Enumerable.Range(1, 5).Select(i => new ProductEntity { Name = $"P{i}" });
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(seed, configure: o => o.DefaultPageSize = 2);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField> { PageSize = pageSize }, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField> { PageSize = pageSize }, e => e.Name);
 
         result.Value.Items.Should().HaveCount(2);
     }
@@ -190,9 +190,9 @@ public class QueryPipelineValidationTests
         IEnumerable<ProductEntity> seed = Enumerable.Range(1, 6).Select(i => new ProductEntity { Name = $"P{i}" });
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(seed, new ProductQueryModel(configure: model => model.PageSize(defaultSize: 2, maxSize: 4)));
 
-        QueryResult<Page<string>> byDefault = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField>(), e => e.Name);
-        QueryResult<Page<string>> overMaximum = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField> { PageSize = 100 }, e => e.Name);
-        QueryResult<Page<string>> inCode = await fixture.Pipeline.QueryAsync(new QueryBuilder<ProductField>(), e => e.Name);
+        QueryResult<Page<string>> byDefault = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField>(), e => e.Name);
+        QueryResult<Page<string>> overMaximum = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField> { PageSize = 100 }, e => e.Name);
+        QueryResult<Page<string>> inCode = await fixture.Pipeline.GetPageAsync(new QueryBuilder<ProductField>(), e => e.Name);
 
         byDefault.Value.Items.Should().HaveCount(2);
         overMaximum.Value.Items.Should().HaveCount(4);
@@ -211,7 +211,7 @@ public class QueryPipelineValidationTests
             .WithPageSize(10)
             .Build();
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(request, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(request, e => e.Name);
 
         result.Value.Items.Should().ContainSingle().Which.Should().Be("Widget");
     }

@@ -10,7 +10,7 @@ Each page comes back with a `nextCursor`. Send the same request with that cursor
 string? cursor = null;
 do
 {
-    QueryResult<Page<ProductDto>> page = await pipeline.QueryAsync(request with { Cursor = cursor }, projection);
+    QueryResult<Page<ProductDto>> page = await pipeline.GetPageAsync(request with { Cursor = cursor }, projection);
     // ... use page.Value.Items
     cursor = page.Value.NextCursor;
 }

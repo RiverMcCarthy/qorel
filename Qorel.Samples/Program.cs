@@ -57,7 +57,7 @@ app.MapGet("/products", async (
     IQueryPipeline<ProductEntity, ProductField> pipeline,
     CancellationToken cancellationToken) =>
 {
-    QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
+    QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(
         query,
         e => new ProductDto(e.Id, e.Name, e.Price, e.Category, e.Stock),
         cancellationToken: cancellationToken);
@@ -73,7 +73,7 @@ app.MapPost("/products/query", async (
     IQueryPipeline<ProductEntity, ProductField> pipeline,
     CancellationToken cancellationToken) =>
 {
-    QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
+    QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(
         request,
         e => new ProductDto(e.Id, e.Name, e.Price, e.Category, e.Stock),
         cancellationToken: cancellationToken);

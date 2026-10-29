@@ -48,7 +48,7 @@ public class ServerFilterTests
     {
         await using PipelineFixture fixture = await CreateAsync();
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField>(), e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField>(), e => e.Name);
 
         result.Value.Items.Should().BeEquivalentTo("Mine A", "Mine B", "Shared");
     }
@@ -84,7 +84,7 @@ public class ServerFilterTests
     {
         await using PipelineFixture fixture = await CreateAsync(services => services.AddScoped<IServerFilter<ProductEntity>, InStockOnly>());
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField>(), e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField>(), e => e.Name);
 
         result.Value.Items.Should().Equal("Mine B");
     }
@@ -94,7 +94,7 @@ public class ServerFilterTests
     {
         await using PipelineFixture fixture = await CreateAsync();
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryRequest<ProductField>(),
             e => e.Name,
             additionalFilters: [ProductFields.Name.StartsWith("Mine")]);

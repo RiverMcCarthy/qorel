@@ -41,7 +41,7 @@ public class PipelineQueryBenchmark
         db.Products.AddRange(products);
         await db.SaveChangesAsync();
 
-        QueryResult<Page<string>> firstPage = await PipelineIn(scope).QueryAsync(ByName(), e => e.Name);
+        QueryResult<Page<string>> firstPage = await PipelineIn(scope).GetPageAsync(ByName(), e => e.Name);
         _secondPageCursor = firstPage.Value.NextCursor!;
     }
 
@@ -52,26 +52,26 @@ public class PipelineQueryBenchmark
         await _connection.DisposeAsync();
     }
 
-    [Benchmark(Baseline = true, Description = "QueryAsync, first page, no filters")]
+    [Benchmark(Baseline = true, Description = "GetPageAsync, first page, no filters")]
     public async Task<QueryResult<Page<string>>> FirstPage()
     {
         await using AsyncServiceScope scope = _provider.CreateAsyncScope();
-        return await PipelineIn(scope).QueryAsync(ByName(), e => e.Name);
+        return await PipelineIn(scope).GetPageAsync(ByName(), e => e.Name);
     }
 
-    [Benchmark(Description = "QueryAsync, next page from a cursor")]
+    [Benchmark(Description = "GetPageAsync, next page from a cursor")]
     public async Task<QueryResult<Page<string>>> NextPage()
     {
         await using AsyncServiceScope scope = _provider.CreateAsyncScope();
-        return await PipelineIn(scope).QueryAsync(ByName().WithCursor(_secondPageCursor), e => e.Name);
+        return await PipelineIn(scope).GetPageAsync(ByName().WithCursor(_secondPageCursor), e => e.Name);
     }
 
-    [Benchmark(Description = "QueryAsync, first page, 3 filters")]
+    [Benchmark(Description = "GetPageAsync, first page, 3 filters")]
     public async Task<QueryResult<Page<string>>> WithFilters()
     {
         await using AsyncServiceScope scope = _provider.CreateAsyncScope();
 
-        return await PipelineIn(scope).QueryAsync(
+        return await PipelineIn(scope).GetPageAsync(
             new QueryBuilder<BenchmarkField>()
                 .Where(
                     BenchmarkFields.Category.EqualTo(BenchmarkCategory.Electronics),

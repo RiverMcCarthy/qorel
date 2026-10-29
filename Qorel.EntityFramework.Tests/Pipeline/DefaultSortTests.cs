@@ -19,7 +19,7 @@ public class DefaultSortTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed(), ByStockThenRatingDescending());
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField>(), e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField>(), e => e.Name);
 
         result.Value.Items.Should().Equal("Item 5", "Item 2", "Item 4", "Item 7", "Item 1", "Item 6", "Item 3");
     }
@@ -29,7 +29,7 @@ public class DefaultSortTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed(), ByStockThenRatingDescending());
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().OrderBy(ProductFields.Name),
             e => e.Name);
 
@@ -45,7 +45,7 @@ public class DefaultSortTests
         string? cursor = null;
         do
         {
-            QueryResult<Page<string>> page = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField> { PageSize = 2, Cursor = cursor }, e => e.Name);
+            QueryResult<Page<string>> page = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField> { PageSize = 2, Cursor = cursor }, e => e.Name);
             paged.AddRange(page.Value.Items);
             cursor = page.Value.NextCursor;
         }

@@ -52,7 +52,7 @@ public class InMemoryParityTests
             .Where(filters)
             .WithPageSize(100);
 
-        QueryResult<Page<string>> sql = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> sql = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
         IEnumerable<string> inMemory = new ProductQueryModel().ApplyFilters(_seed, filters).Select(e => e.Name);
 
         inMemory.Should().BeEquivalentTo(sql.Value.Items, description);

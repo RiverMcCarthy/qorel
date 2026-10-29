@@ -31,7 +31,7 @@ public class CaseInsensitiveFieldTests
         var model = new ProductQueryModel(ignoreCase: true);
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(_seed, model);
 
-        QueryResult<Page<string>> sql = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> sql = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().Where(filter),
             e => e.Name);
         IEnumerable<string> inMemory = model.ApplyFilters(_seed, [filter]).Select(e => e.Name);
@@ -45,7 +45,7 @@ public class CaseInsensitiveFieldTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(_seed);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().Where(ProductFields.Name.EqualTo("alpha widget")),
             e => e.Name);
 
@@ -57,7 +57,7 @@ public class CaseInsensitiveFieldTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(_seed, new ProductQueryModel(ignoreCase: true));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().OrderBy(ProductFields.Name),
             e => e.Name);
 

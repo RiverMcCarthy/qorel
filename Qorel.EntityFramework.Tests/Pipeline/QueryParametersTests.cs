@@ -24,8 +24,8 @@ public class QueryParametersTests
             PageSize = 1,
         };
 
-        QueryResult<Page<string>> first = await fixture.Pipeline.QueryAsync(parameters, e => e.Name);
-        QueryResult<Page<string>> second = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> first = await fixture.Pipeline.GetPageAsync(parameters, e => e.Name);
+        QueryResult<Page<string>> second = await fixture.Pipeline.GetPageAsync(
             new QueryParameters<ProductField> { Filters = parameters.Filters, Sort = parameters.Sort, PageSize = 1, Cursor = first.Value.NextCursor },
             e => e.Name);
 
@@ -53,7 +53,7 @@ public class QueryParametersTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync([]);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryParameters<ProductField> { Filters = filters, Sort = sort, Bounds = bounds },
             e => e.Name);
 
@@ -65,7 +65,7 @@ public class QueryParametersTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync([]);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryParameters<ProductField> { Sort = "colour" }, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryParameters<ProductField> { Sort = "colour" }, e => e.Name);
 
         result.Errors.Single().Field.Should().Be("colour");
     }

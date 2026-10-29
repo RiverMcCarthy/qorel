@@ -8,7 +8,7 @@ Handlers depend on `IQueryPipeline<TEntity, TField>`, which is in the core `Qore
 // NSubstitute
 var pipeline = Substitute.For<IQueryPipeline<Product, ProductField>>();
 pipeline
-    .QueryAsync(Arg.Any<QueryRequest<ProductField>>(), Arg.Any<Expression<Func<Product, ProductDto>>>(), Arg.Any<IEnumerable<Filter<ProductField>>?>(), Arg.Any<CancellationToken>())
+    .GetPageAsync(Arg.Any<QueryRequest<ProductField>>(), Arg.Any<Expression<Func<Product, ProductDto>>>(), Arg.Any<IEnumerable<Filter<ProductField>>?>(), Arg.Any<CancellationToken>())
     .Returns(QueryResult<Page<ProductDto>>.Success(new Page<ProductDto> { Items = [dto] }));
 ```
 

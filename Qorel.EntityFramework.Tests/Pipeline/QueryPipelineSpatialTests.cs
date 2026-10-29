@@ -77,7 +77,7 @@ public class QueryPipelineSpatialTests
     {
         IQueryPipeline<GeoEntity, GeoField> pipeline = await CreatePipelineAsync();
 
-        QueryResult<Page<string>> result = await pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await pipeline.GetPageAsync(
             new QueryBuilder<GeoField>().WithSpatialBounds(BoundingBox.Create(1, 1, 2, 2)),
             e => e.Name);
 
@@ -89,7 +89,7 @@ public class QueryPipelineSpatialTests
     {
         IQueryPipeline<GeoEntity, GeoField> pipeline = await CreatePipelineAsync();
 
-        QueryResult<Page<string>> result = await pipeline.QueryAsync(new QueryBuilder<GeoField>().WithPageSize(50), e => e.Name);
+        QueryResult<Page<string>> result = await pipeline.GetPageAsync(new QueryBuilder<GeoField>().WithPageSize(50), e => e.Name);
 
         result.Value.Count.Should().Be(25);
     }
@@ -99,7 +99,7 @@ public class QueryPipelineSpatialTests
     {
         IQueryPipeline<GeoEntity, GeoField> pipeline = await CreatePipelineAsync();
 
-        QueryResult<Page<string>> result = await pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await pipeline.GetPageAsync(
             new QueryBuilder<GeoField>().WithSpatialBounds(BoundingBox.Create(0, 0, 0, 0)),
             e => e.Name);
 
@@ -111,7 +111,7 @@ public class QueryPipelineSpatialTests
     {
         IQueryPipeline<GeoEntity, GeoField> pipeline = await CreatePipelineAsync();
 
-        QueryResult<Page<string>> result = await pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await pipeline.GetPageAsync(
             new QueryBuilder<GeoField>()
                 .Where(GeoFields.Latitude.EqualTo(1))
                 .WithSpatialBounds(BoundingBox.Create(0, 0, 2, 2)),
@@ -145,7 +145,7 @@ public class QueryPipelineSpatialTests
             .WithSpatialBounds(new BoundingBox(minLat, minLng, maxLat, maxLng))
             .Build();
 
-        QueryResult<Page<string>> result = await pipeline.QueryAsync(request, e => e.Name);
+        QueryResult<Page<string>> result = await pipeline.GetPageAsync(request, e => e.Name);
 
         result.Errors.Should().ContainSingle(e => e.Code == ErrorCodes.SpatialBoundsInvalid);
     }
@@ -155,7 +155,7 @@ public class QueryPipelineSpatialTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync([]);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().WithSpatialBounds(BoundingBox.Create(0, 0, 1, 1)),
             e => e.Name);
 

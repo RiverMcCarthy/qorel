@@ -41,8 +41,9 @@ First release.
 ### Qorel.EntityFramework
 
 - `AddEntityFramework<TDbContext>()` registers an `IQueryPipeline` for every
-  model, with `QueryAsync`, `CountAsync`, `FindAsync` and `ListAsync`. Queries
-  are read-only and untracked, and every value is sent as a SQL parameter.
+  model, with `GetPageAsync`, `CountAsync`, `FindAsync` and `ListAsync`.
+  Queries are read-only and untracked, and every value is sent as a SQL
+  parameter.
 
 ### Qorel.AspNetCore
 

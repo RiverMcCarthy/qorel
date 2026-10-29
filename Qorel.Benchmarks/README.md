@@ -24,4 +24,4 @@ dotnet run -c Release --filter "*Pipeline*"
 | `SchemaInitBenchmark` | One-time lazy init cost of `FieldSchema.EnsureInitialised()` |
 | `FilterParseBenchmark` | `schema.ParseFilters()` with 1 and 5 filters |
 | `QueryBuilderBenchmark` | Fluent `QueryBuilder` chain allocation |
-| `PipelineQueryBenchmark` | Full `QueryAsync` / `FindAsync` against SQLite in-memory |
+| `PipelineQueryBenchmark` | Full `GetPageAsync` / `FindAsync` against SQLite in-memory |

@@ -13,7 +13,7 @@ namespace Qorel;
 /// <remarks>
 /// In a minimal API, bind it with <c>[AsParameters]</c>, which also documents each parameter in OpenAPI. In a controller,
 /// use <c>[FromQuery]</c>. Then pass it to
-/// <see cref="QueryPipelineExtensions.QueryAsync{TEntity, TField, TResult}(IQueryPipeline{TEntity, TField}, QueryParameters{TField}, System.Linq.Expressions.Expression{Func{TEntity, TResult}}, IEnumerable{Filter{TField}}?, CancellationToken)"/>.
+/// <see cref="QueryPipelineExtensions.GetPageAsync{TEntity, TField, TResult}(IQueryPipeline{TEntity, TField}, QueryParameters{TField}, System.Linq.Expressions.Expression{Func{TEntity, TResult}}, IEnumerable{Filter{TField}}?, CancellationToken)"/>.
 /// </remarks>
 /// <typeparam name="TField">The enum that names the fields.</typeparam>
 public sealed class QueryParameters<TField>

@@ -52,7 +52,7 @@ public class QueryPipelineCountTests
             .WithPageSize(2)
             .Build();
 
-        QueryResult<Page<string>> page = await fixture.Pipeline.QueryAsync(firstPage, e => e.Name);
+        QueryResult<Page<string>> page = await fixture.Pipeline.GetPageAsync(firstPage, e => e.Name);
         QueryRequest<ProductField> secondPage = firstPage with { Cursor = page.Value.NextCursor };
 
         QueryResult<ItemCount> result = await fixture.Pipeline.CountAsync(secondPage);

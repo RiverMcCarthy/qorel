@@ -17,7 +17,7 @@ public class QueryPipelineSortTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .OrderBy(ProductFields.Name);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().Equal("Alice", "Bob", "Charlie");
     }
@@ -30,7 +30,7 @@ public class QueryPipelineSortTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .OrderByDescending(ProductFields.Stock);
 
-        QueryResult<Page<int>> result = await fixture.Pipeline.QueryAsync(query, e => e.Stock);
+        QueryResult<Page<int>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Stock);
 
         result.Value.Items.Should().Equal(30, 20, 10);
     }
@@ -51,7 +51,7 @@ public class QueryPipelineSortTests
             .OrderBy(ProductFields.Stock)
             .ThenBy(ProductFields.Name);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().Equal("Alpha", "Zeta", "Beta");
     }
@@ -72,7 +72,7 @@ public class QueryPipelineSortTests
             .OrderBy(ProductFields.Stock)
             .ThenByDescending(ProductFields.Name);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().Equal("Zeta", "Alpha", "Beta");
     }

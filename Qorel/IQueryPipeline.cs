@@ -34,7 +34,7 @@ public interface IQueryPipeline<TEntity, TField>
     /// </param>
     /// <param name="cancellationToken">Cancels the query.</param>
     /// <returns>The page, or the validation errors if the request is invalid.</returns>
-    Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
+    Task<QueryResult<Page<TResult>>> GetPageAsync<TResult>(
         QueryRequest<TField> request,
         Expression<Func<TEntity, TResult>> projection,
         IEnumerable<Filter<TField>>? additionalFilters = null,
@@ -49,7 +49,7 @@ public interface IQueryPipeline<TEntity, TField>
     /// <param name="cancellationToken">Cancels the query.</param>
     /// <returns>The page, or an error if the cursor or spatial bounds are invalid.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the query uses a field the model does not map.</exception>
-    Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
+    Task<QueryResult<Page<TResult>>> GetPageAsync<TResult>(
         QueryBuilder<TField> query,
         Expression<Func<TEntity, TResult>> projection,
         CancellationToken cancellationToken = default);
@@ -59,7 +59,7 @@ public interface IQueryPipeline<TEntity, TField>
     /// page size are ignored, so a client can send the same query it pages with.
     /// </summary>
     /// <param name="request">The client's query.</param>
-    /// <param name="additionalFilters">Filters added on top of the client's, as for <c>QueryAsync</c>.</param>
+    /// <param name="additionalFilters">Filters added on top of the client's, as for <c>GetPageAsync</c>.</param>
     /// <param name="maxCount">
     /// Stops counting once more than this many items match, which keeps counts cheap on big tables.
     /// </param>

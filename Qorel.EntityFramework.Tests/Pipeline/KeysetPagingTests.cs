@@ -45,7 +45,7 @@ public class KeysetPagingTests
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed());
         var sort = new SortRequest<ProductField> { Field = Enum.Parse<ProductField>(field), Direction = descending ? SortDirection.Desc : SortDirection.Asc };
 
-        QueryResult<Page<Guid>> everything = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<Guid>> everything = await fixture.Pipeline.GetPageAsync(
             new QueryRequest<ProductField> { Sorts = [sort], PageSize = 100 },
             e => e.Id);
 
@@ -53,7 +53,7 @@ public class KeysetPagingTests
         string? cursor = null;
         do
         {
-            QueryResult<Page<Guid>> page = await fixture.Pipeline.QueryAsync(
+            QueryResult<Page<Guid>> page = await fixture.Pipeline.GetPageAsync(
                 new QueryRequest<ProductField> { Sorts = [sort], PageSize = 4, Cursor = cursor },
                 e => e.Id);
 
@@ -74,7 +74,7 @@ public class KeysetPagingTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed());
 
-        QueryResult<Page<string?>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string?>> result = await fixture.Pipeline.GetPageAsync(
             new QueryRequest<ProductField> { Sorts = [new() { Field = ProductField.Brand, Direction = direction }], PageSize = 100 },
             e => e.Brand);
 
@@ -90,7 +90,7 @@ public class KeysetPagingTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed());
 
-        QueryResult<Page<double?>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<double?>> result = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().OrderBy(ProductFields.Rating).WithPageSize(100),
             e => e.Rating);
 
@@ -108,7 +108,7 @@ public class KeysetPagingTests
         string? cursor = null;
         do
         {
-            QueryResult<Page<Guid>> page = await fixture.Pipeline.QueryAsync(
+            QueryResult<Page<Guid>> page = await fixture.Pipeline.GetPageAsync(
                 new QueryBuilder<ProductField>().OrderByDescending(ProductFields.Brand).ThenBy(ProductFields.Name).WithPageSize(5).WithCursor(cursor),
                 e => e.Id);
 
@@ -125,11 +125,11 @@ public class KeysetPagingTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed());
 
-        QueryResult<Page<Guid>> byPrice = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<Guid>> byPrice = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().OrderBy(ProductFields.Price).WithPageSize(2),
             e => e.Id);
 
-        QueryResult<Page<Guid>> byStock = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<Guid>> byStock = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().OrderBy(ProductFields.Stock).WithPageSize(2).WithCursor(byPrice.Value.NextCursor),
             e => e.Id);
 
@@ -141,7 +141,7 @@ public class KeysetPagingTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed(), configure: o => o.MaxCursorLength = 10);
 
-        QueryResult<Page<Guid>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<Guid>> result = await fixture.Pipeline.GetPageAsync(
             new QueryRequest<ProductField> { Cursor = new string('a', 11) },
             e => e.Id);
 
@@ -153,7 +153,7 @@ public class KeysetPagingTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed());
 
-        QueryResult<Page<Guid>> result = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField> { Cursor = "" }, e => e.Id);
+        QueryResult<Page<Guid>> result = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField> { Cursor = "" }, e => e.Id);
 
         result.Value.Items.Should().HaveCount(20);
     }

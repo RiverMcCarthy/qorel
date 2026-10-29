@@ -14,7 +14,7 @@ public class SqlParameterTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed());
 
-        await fixture.Pipeline.QueryAsync(
+        await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>().Where(
                 ProductFields.Stock.GreaterThan(4321),
                 ProductFields.Name.Contains("needle"),
@@ -42,10 +42,10 @@ public class SqlParameterTests
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(Seed());
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>().OrderBy(ProductFields.Name).WithPageSize(2);
 
-        QueryResult<Page<string>> first = await fixture.Pipeline.QueryAsync(query, e => e.Name);
-        await fixture.Pipeline.QueryAsync(query.WithCursor(first.Value.NextCursor), e => e.Name);
-        QueryResult<Page<string>> second = await fixture.Pipeline.QueryAsync(query.WithCursor(first.Value.NextCursor), e => e.Name);
-        await fixture.Pipeline.QueryAsync(query.WithCursor(second.Value.NextCursor), e => e.Name);
+        QueryResult<Page<string>> first = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
+        await fixture.Pipeline.GetPageAsync(query.WithCursor(first.Value.NextCursor), e => e.Name);
+        QueryResult<Page<string>> second = await fixture.Pipeline.GetPageAsync(query.WithCursor(first.Value.NextCursor), e => e.Name);
+        await fixture.Pipeline.GetPageAsync(query.WithCursor(second.Value.NextCursor), e => e.Name);
 
         fixture.Sql.Last().Should().NotContain("Item 4");
         fixture.Sql.Skip(1).Select(CommandText).Distinct().Should().ContainSingle();

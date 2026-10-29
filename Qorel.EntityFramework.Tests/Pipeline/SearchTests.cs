@@ -16,7 +16,7 @@ public class SearchTests
     private static async Task<QueryResult<Page<string>>> SearchAsync(string? search, ProductQueryModel? model = null)
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(_seed, model ?? new ProductQueryModel(searchable: true));
-        return await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField> { Search = search }, e => e.Name);
+        return await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField> { Search = search }, e => e.Name);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class SearchTests
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(
             _seed, new ProductQueryModel(searchable: true), configure: o => o.MaxSearchLength = 5);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryRequest<ProductField> { Search = "longer than five" }, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryRequest<ProductField> { Search = "longer than five" }, e => e.Name);
 
         result.Errors.Should().ContainSingle(e => e.Code == ErrorCodes.SearchTooLong);
     }
@@ -72,7 +72,7 @@ public class SearchTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(_seed, new ProductQueryModel(searchable: true));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(new QueryBuilder<ProductField>().WithSearch("redwood"), e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(new QueryBuilder<ProductField>().WithSearch("redwood"), e => e.Name);
 
         result.Value.Items.Should().Equal("Blue Shoes");
     }
@@ -82,7 +82,7 @@ public class SearchTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(_seed);
 
-        Func<Task> act = () => fixture.Pipeline.QueryAsync(new QueryBuilder<ProductField>().WithSearch("red"), e => e.Name);
+        Func<Task> act = () => fixture.Pipeline.GetPageAsync(new QueryBuilder<ProductField>().WithSearch("red"), e => e.Name);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*no searchable fields*");
     }

@@ -9,7 +9,7 @@ namespace Qorel;
 /// <example>
 /// <code>
 /// app.MapPost("/products/query", async (QueryRequest&lt;ProductField&gt; request, IQueryPipeline&lt;Product, ProductField&gt; pipeline) =&gt;
-///     (await pipeline.QueryAsync(request, e =&gt; new ProductDto(e.Id, e.Name))).ToHttpResult());
+///     (await pipeline.GetPageAsync(request, e =&gt; new ProductDto(e.Id, e.Name))).ToHttpResult());
 /// </code>
 /// </example>
 public static class QueryResultHttpExtensions

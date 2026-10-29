@@ -9,9 +9,9 @@ public static class QueryPipelineExtensions
 {
     /// <summary>
     /// Reads <paramref name="parameters"/> into a request, then runs it like
-    /// <see cref="IQueryPipeline{TEntity,TField}.QueryAsync{TResult}(QueryRequest{TField}, Expression{Func{TEntity, TResult}}, IEnumerable{Filter{TField}}?, CancellationToken)"/>.
+    /// <see cref="IQueryPipeline{TEntity,TField}.GetPageAsync{TResult}(QueryRequest{TField}, Expression{Func{TEntity, TResult}}, IEnumerable{Filter{TField}}?, CancellationToken)"/>.
     /// </summary>
-    public static async Task<QueryResult<Page<TResult>>> QueryAsync<TEntity, TField, TResult>(
+    public static async Task<QueryResult<Page<TResult>>> GetPageAsync<TEntity, TField, TResult>(
         this IQueryPipeline<TEntity, TField> pipeline,
         QueryParameters<TField> parameters,
         Expression<Func<TEntity, TResult>> projection,
@@ -26,7 +26,7 @@ public static class QueryPipelineExtensions
         QueryResult<QueryRequest<TField>> request = parameters.ToRequest();
 
         return request.IsSuccess
-            ? await pipeline.QueryAsync(request.Value, projection, additionalFilters, cancellationToken).ConfigureAwait(false)
+            ? await pipeline.GetPageAsync(request.Value, projection, additionalFilters, cancellationToken).ConfigureAwait(false)
             : QueryResult<Page<TResult>>.Failure(request.Errors);
     }
 

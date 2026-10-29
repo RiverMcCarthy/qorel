@@ -34,7 +34,7 @@ A client sends a `QueryRequest<TField>` as a POST body, or the same thing as [qu
 Pass the request to the pipeline along with a projection, which runs in the database:
 
 ```csharp
-QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
+QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(
     request,
     e => new ProductDto(e.Id, e.Name, e.Price),
     cancellationToken: cancellationToken);
@@ -67,7 +67,7 @@ app.MapGet("/products", async (
     IQueryPipeline<Product, ProductField> pipeline,
     CancellationToken cancellationToken) =>
 {
-    QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(query, e => new ProductDto(e.Id, e.Name, e.Price), cancellationToken: cancellationToken);
+    QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(query, e => new ProductDto(e.Id, e.Name, e.Price), cancellationToken: cancellationToken);
     return result.ToHttpResult();
 });
 ```
@@ -88,7 +88,7 @@ var query = new QueryBuilder<ProductField>()
     .WithPageSize(10)
     .WithCursor(cursor);
 
-QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(query, e => new ProductDto(e.Id, e.Name, e.Price));
+QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(query, e => new ProductDto(e.Id, e.Name, e.Price));
 ```
 
 Same as LINQ, `OrderBy` and `OrderByDescending` replace any sorts before them, and `ThenBy` and `ThenByDescending` add to them. With no sort, the model's default sort is used. Using a field the model doesn't map, or searching a model with no searchable fields, throws, because that's a bug in your code rather than bad input.
@@ -110,14 +110,14 @@ public sealed class VisibleProducts(ICurrentUser user) : IServerFilter<Product>
 builder.Services.AddScoped<IServerFilter<Product>, VisibleProducts>();
 ```
 
-Register them as scoped so they can use the current user. You can register as many as you like, and an item has to match all of them. They're applied to every pipeline call: `QueryAsync`, `CountAsync`, `FindAsync` and `ListAsync`. That means no endpoint can forget them, and a user can't get to someone else's item by guessing its id. Values the predicate uses, like `user.Id`, are sent as SQL parameters.
+Register them as scoped so they can use the current user. You can register as many as you like, and an item has to match all of them. They're applied to every pipeline call: `GetPageAsync`, `CountAsync`, `FindAsync` and `ListAsync`. That means no endpoint can forget them, and a user can't get to someone else's item by guessing its id. Values the predicate uses, like `user.Id`, are sent as SQL parameters.
 
 If all you need is tenant isolation across the whole app, EF Core's global query filters (`HasQueryFilter`) are worth a look too, since they apply to every EF query and not just Qorel's.
 
 **Rules for a single call** can be passed as `additionalFilters`. They're added on top of the registered ones:
 
 ```csharp
-QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
+QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(
     request,
     e => new ProductDto(e.Id, e.Name, e.Price),
     additionalFilters: [ProductFields.Status.EqualTo(ProductStatus.Published)],

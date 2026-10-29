@@ -22,7 +22,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Name.EqualTo("Beta Gadget"));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Items.Should().ContainSingle().Which.Should().Be("Beta Gadget");
@@ -36,7 +36,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Name.Contains("Gadget"));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().ContainSingle().Which.Should().Contain("Gadget");
     }
@@ -49,7 +49,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Name.StartsWith("Alpha"));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().ContainSingle().Which.Should().StartWith("Alpha");
     }
@@ -62,7 +62,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Name.EndsWith("Bread"));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().ContainSingle().Which.Should().EndWith("Bread");
     }
@@ -75,7 +75,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Category.IsOneOf([ProductCategory.Food, ProductCategory.Clothing]));
 
-        QueryResult<Page<ProductCategory>> result = await fixture.Pipeline.QueryAsync(query, e => e.Category);
+        QueryResult<Page<ProductCategory>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Category);
 
         result.Value.Items.Should().HaveCount(4);
         result.Value.Items.Should().OnlyContain(c => c == ProductCategory.Food || c == ProductCategory.Clothing);
@@ -89,7 +89,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Category.IsNotOneOf([ProductCategory.Electronics]));
 
-        QueryResult<Page<ProductCategory>> result = await fixture.Pipeline.QueryAsync(query, e => e.Category);
+        QueryResult<Page<ProductCategory>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Category);
 
         result.Value.Items.Should().HaveCount(4);
         result.Value.Items.Should().NotContain(ProductCategory.Electronics);
@@ -103,7 +103,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Price.GreaterThan(20m));
 
-        QueryResult<Page<decimal>> result = await fixture.Pipeline.QueryAsync(query, e => e.Price);
+        QueryResult<Page<decimal>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Price);
 
         result.Value.Items.Should().HaveCount(2);
         result.Value.Items.Should().OnlyContain(p => p > 20m);
@@ -117,7 +117,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Price.GreaterThanOrEquals(25m));
 
-        QueryResult<Page<decimal>> result = await fixture.Pipeline.QueryAsync(query, e => e.Price);
+        QueryResult<Page<decimal>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Price);
 
         result.Value.Items.Should().HaveCount(2);
         result.Value.Items.Should().OnlyContain(p => p >= 25m);
@@ -131,7 +131,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Price.LessThan(10m));
 
-        QueryResult<Page<decimal>> result = await fixture.Pipeline.QueryAsync(query, e => e.Price);
+        QueryResult<Page<decimal>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Price);
 
         result.Value.Items.Should().HaveCount(2);
         result.Value.Items.Should().OnlyContain(p => p < 10m);
@@ -145,7 +145,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Price.LessThanOrEquals(10m));
 
-        QueryResult<Page<decimal>> result = await fixture.Pipeline.QueryAsync(query, e => e.Price);
+        QueryResult<Page<decimal>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Price);
 
         result.Value.Items.Should().HaveCount(3);
         result.Value.Items.Should().OnlyContain(p => p <= 10m);
@@ -159,7 +159,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Rating.IsNull());
 
-        QueryResult<Page<double?>> result = await fixture.Pipeline.QueryAsync(query, e => e.Rating);
+        QueryResult<Page<double?>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Rating);
 
         result.Value.Items.Should().HaveCount(2);
         result.Value.Items.Should().OnlyContain(r => r == null);
@@ -173,7 +173,7 @@ public class QueryPipelineFilterTests
         QueryBuilder<ProductField> query = new QueryBuilder<ProductField>()
             .Where(ProductFields.Rating.IsNotNull());
 
-        QueryResult<Page<double?>> result = await fixture.Pipeline.QueryAsync(query, e => e.Rating);
+        QueryResult<Page<double?>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Rating);
 
         result.Value.Items.Should().HaveCount(4);
         result.Value.Items.Should().OnlyContain(r => r != null);
@@ -189,7 +189,7 @@ public class QueryPipelineFilterTests
                 ProductFields.Category.EqualTo(ProductCategory.Electronics),
                 ProductFields.Price.LessThan(20m));
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().ContainSingle().Which.Should().Be("Alpha Widget");
     }
@@ -199,7 +199,7 @@ public class QueryPipelineFilterTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync(SeedData());
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>(),
             e => e.Name);
 
@@ -211,7 +211,7 @@ public class QueryPipelineFilterTests
     {
         await using PipelineFixture fixture = await PipelineFixture.CreateAsync([]);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(
             new QueryBuilder<ProductField>(),
             e => e.Name);
 

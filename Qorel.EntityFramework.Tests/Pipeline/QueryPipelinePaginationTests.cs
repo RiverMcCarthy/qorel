@@ -23,7 +23,7 @@ public class QueryPipelinePaginationTests
             .WithPageSize(3)
             .OrderBy(ProductFields.Stock);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.Items.Should().HaveCount(3);
     }
@@ -37,7 +37,7 @@ public class QueryPipelinePaginationTests
             .WithPageSize(3)
             .OrderBy(ProductFields.Stock);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.HasNextPage.Should().BeTrue();
         result.Value.NextCursor.Should().NotBeNull();
@@ -52,7 +52,7 @@ public class QueryPipelinePaginationTests
             .WithPageSize(10)
             .OrderBy(ProductFields.Stock);
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
 
         result.Value.HasNextPage.Should().BeFalse();
         result.Value.NextCursor.Should().BeNull();
@@ -73,7 +73,7 @@ public class QueryPipelinePaginationTests
                 .WithCursor(cursor)
                 .OrderBy(ProductFields.Stock);
 
-            QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(query, e => e.Name);
+            QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Name);
             result.IsSuccess.Should().BeTrue();
 
             allNames.AddRange(result.Value.Items);
@@ -99,7 +99,7 @@ public class QueryPipelinePaginationTests
                 .WithCursor(cursor)
                 .OrderBy(ProductFields.Stock);
 
-            QueryResult<Page<int>> result = await fixture.Pipeline.QueryAsync(query, e => e.Stock);
+            QueryResult<Page<int>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Stock);
             allStock.AddRange(result.Value.Items);
             cursor = result.Value.NextCursor;
         } while (cursor is not null);
@@ -122,7 +122,7 @@ public class QueryPipelinePaginationTests
                 .WithCursor(cursor)
                 .OrderByDescending(ProductFields.Stock);
 
-            QueryResult<Page<int>> result = await fixture.Pipeline.QueryAsync(query, e => e.Stock);
+            QueryResult<Page<int>> result = await fixture.Pipeline.GetPageAsync(query, e => e.Stock);
             allStock.AddRange(result.Value.Items);
             cursor = result.Value.NextCursor;
         } while (cursor is not null);
@@ -144,7 +144,7 @@ public class QueryPipelinePaginationTests
             Filters = [],
         };
 
-        QueryResult<Page<string>> result = await fixture.Pipeline.QueryAsync(request, e => e.Name);
+        QueryResult<Page<string>> result = await fixture.Pipeline.GetPageAsync(request, e => e.Name);
 
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().ContainSingle(e => e.Code == ErrorCodes.CursorInvalid);

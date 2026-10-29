@@ -2,7 +2,7 @@ namespace Qorel;
 
 /// <summary>
 /// A query as a client sends it in a request body: filters, sorts, search text, a page size, and a cursor. Pass it
-/// to <see cref="IQueryPipeline{TEntity,TField}.QueryAsync{TResult}(QueryRequest{TField}, System.Linq.Expressions.Expression{Func{TEntity, TResult}}, IEnumerable{Filter{TField}}?, CancellationToken)"/>,
+/// to <see cref="IQueryPipeline{TEntity,TField}.GetPageAsync{TResult}(QueryRequest{TField}, System.Linq.Expressions.Expression{Func{TEntity, TResult}}, IEnumerable{Filter{TField}}?, CancellationToken)"/>,
 /// which checks it against the query model before running it. For a GET endpoint, use <c>QueryParameters</c> from
 /// <c>Qorel.AspNetCore</c>.
 /// </summary>

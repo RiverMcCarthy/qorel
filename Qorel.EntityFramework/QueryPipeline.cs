@@ -22,14 +22,14 @@ internal sealed class QueryPipeline<TEntity, TField>(
         db.Context.Set<TEntity>().AsNoTracking(),
         (entities, filter) => entities.Where(filter.Predicate));
 
-    public Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
+    public Task<QueryResult<Page<TResult>>> GetPageAsync<TResult>(
         QueryRequest<TField> request,
         Expression<Func<TEntity, TResult>> projection,
         IEnumerable<Filter<TField>>? additionalFilters = null,
         CancellationToken cancellationToken = default)
         => ReadPageAsync(model.Plan(request, additionalFilters ?? []), projection, cancellationToken);
 
-    public Task<QueryResult<Page<TResult>>> QueryAsync<TResult>(
+    public Task<QueryResult<Page<TResult>>> GetPageAsync<TResult>(
         QueryBuilder<TField> query,
         Expression<Func<TEntity, TResult>> projection,
         CancellationToken cancellationToken = default)

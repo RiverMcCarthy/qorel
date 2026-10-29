@@ -95,7 +95,7 @@ app.MapPost("/products/query", async (
     IQueryPipeline<Product, ProductField> pipeline,
     CancellationToken cancellationToken) =>
 {
-    QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(
+    QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(
         request,
         e => new ProductDto(e.Id, e.Name, e.Price),
         cancellationToken: cancellationToken);
@@ -126,7 +126,7 @@ If you want a GET endpoint so browsers and CDNs can cache it, bind `QueryParamet
 
 ```csharp
 app.MapGet("/products", async ([AsParameters] QueryParameters<ProductField> query, IQueryPipeline<Product, ProductField> pipeline) =>
-    (await pipeline.QueryAsync(query, e => new ProductDto(e.Id, e.Name, e.Price))).ToHttpResult());
+    (await pipeline.GetPageAsync(query, e => new ProductDto(e.Id, e.Name, e.Price))).ToHttpResult());
 ```
 
 ```
@@ -143,7 +143,7 @@ var query = new QueryBuilder<ProductField>()
     .OrderByDescending(ProductFields.Price)
     .WithPageSize(50);
 
-QueryResult<Page<ProductDto>> result = await pipeline.QueryAsync(query, e => new ProductDto(e.Id, e.Name, e.Price));
+QueryResult<Page<ProductDto>> result = await pipeline.GetPageAsync(query, e => new ProductDto(e.Id, e.Name, e.Price));
 ```
 
 ## Documentation
