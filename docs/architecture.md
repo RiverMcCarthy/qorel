@@ -13,6 +13,15 @@ How Qorel fits together, if you're working on it.
 
 ## How a request flows
 
+A query goes through three steps, and each one has its own folder:
+
+1. **Read** (`Requests/`, `Serialization/`): the JSON body or query string becomes a `QueryRequest`. Input that can't be
+   read at all, like broken JSON, is rejected here.
+2. **Check and plan** (`Querying/`): every part is checked against the model and every error is collected. This is
+   the only place that happens. The result is a `QueryPlan`.
+3. **Build and run** (`Predicates/`, `Paging/`): the plan becomes an `IQueryable`, and a backend runs it. Nothing here
+   can fail because of client input.
+
 ```
 QueryRequest (JSON body)  or  QueryParameters (query string, Qorel.AspNetCore)  or  QueryBuilder (code)
    |
@@ -20,7 +29,7 @@ QueryRequest (JSON body)  or  QueryParameters (query string, Qorel.AspNetCore)  
 QueryPlanner.Plan                       checks every part and collects every error
    |   +- RequestValidator               fields, operators, values, limits, search, spatial bounds
    |   |     \- MappedField.TryCreateFilter -> FieldValueJson    read a raw JSON value as the field's type
-   |   \- KeysetPagination.Create        sort keys (requested, default, then id) and the decoded cursor
+   |   \- Paginate                       sort keys (requested, default, then id) and the decoded cursor
    v
 QueryPlan                               a checked query, with any additional filters added
    |   Matching(source)                 filters + search + spatial bounds  -> used by pages and counts
@@ -37,16 +46,21 @@ registered `IServerFilter` applied. Pages, counts, finds and lists all start fro
 
 ## Where things live
 
-| Folder           | What's in it                                                                                                                                                                                                                                                     |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Fields/`        | The typed field handles users declare: `Field`, `TextField`, `ComparableField`.                                                                                                                                                                                  |
-| `Filters/`       | `Filter` and its one implementation `FieldFilter`, the operators and which types support them, `FilterSet`, and reading and formatting values.                                                                                                                   |
-| `Model/`         | `QueryModel` and its builders. `MappedField` is one mapped field and does everything that needs its value type. `BuiltModel` is what `Configure` produces and can't change. `RequestValidator` checks client input. `ClientField` is what clients can do with a field. |
-| `Querying/`      | What comes in (`QueryRequest`, `SortRequest`, `QueryBuilder`) and what it turns into: `QueryPlanner` makes a `QueryPlan`.                                                                                                                                        |
-| `Paging/`        | `KeysetPagination` sorts, skips past the previous page and builds the next cursor. `SortKey` is one sort column, `Cursor` encodes and decodes cursors, and `PageRow` is one row read back.                                                                        |
-| `Predicates/`    | Turning a filter into an expression tree (`FilterExpressions`) or a delegate (`InMemoryFilters`), free-text search (`TextSearch`), and shared expression helpers.                                                                                                |
-| `Results/`       | `QueryResult`, `ValidationError`, `ErrorCodes`, `Page` and `ItemCount`.                                                                                                                                                                                          |
-| `Serialization/` | The JSON converters for requests, and strict enum name matching.                                                                                                                                                                                                 |
+| Folder           | What's in it                                                                                                                                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Requests/`      | What a client sends: `QueryRequest`, `FilterRequest`, `SortRequest` and `SortDirection`. Nothing here is checked yet.                                                                                                                |
+| `Serialization/` | Reading and writing JSON: the request converters, `FieldValueJson` for filter and cursor values, and strict enum name matching.                                                                                                      |
+| `Querying/`      | Checking and planning. `RequestValidator` checks client input, `QueryPlanner` puts the checks together and makes a `QueryPlan`, and `QueryBuilder` is the query you build in code.                                                   |
+| `Predicates/`    | Every condition Qorel adds to a `Where`: filters (`FilterExpressions`, or `InMemoryFilters` for data in memory), search (`TextSearch`), and "comes after the cursor" (`KeysetPredicate`). `QueryExpressions` has the shared helpers. |
+| `Paging/`        | Reading a page. `KeysetPagination` sorts, skips past the previous page, takes the page and builds the next cursor. `SortKey` is one sort column, `Cursor` encodes and decodes cursors, and `PageRow` is one row read back.           |
+| `Model/`         | `QueryModel` and its builders. `MappedField` is one mapped field and does everything that needs its value type. `BuiltModel` is what `Configure` produces and can't change. `ClientField` is what clients can do with a field.       |
+| `Fields/`        | The typed field handles users declare: `Field`, `TextField`, `ComparableField`.                                                                                                                                                      |
+| `Filters/`       | `Filter` and its one implementation `FieldFilter`, the operators and which types support them, `FilterSet`, and formatting values for cache keys.                                                                                    |
+| `Spatial/`       | `BoundingBox`.                                                                                                                                                                                                                       |
+| `Results/`       | `QueryResult`, `ValidationError`, `ErrorCodes`, `Page` and `ItemCount`.                                                                                                                                                              |
+
+The root folder has what you set up and inject: `IQueryPipeline`, `IServerFilter`, `QorelOptions` and the DI
+registration.
 
 Each file has one top-level type. Small private types that only help one class, like the JSON converters' inner
 `Converter<T>`, are nested inside it. The one exception is `MappedField.cs`, which has the non-generic base and its

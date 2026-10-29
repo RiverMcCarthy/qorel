@@ -1,8 +1,9 @@
 namespace Qorel;
 
 /// <summary>
-/// Turns a client's <see cref="QueryRequest{TField}"/> or a <see cref="QueryBuilder{TField}"/> into a
-/// <see cref="QueryPlan{TEntity,TField}"/>.
+/// Checks a client's <see cref="QueryRequest{TField}"/> or a <see cref="QueryBuilder{TField}"/> and turns it into a
+/// <see cref="QueryPlan{TEntity,TField}"/>. Client input is only checked against the model here and in
+/// <see cref="RequestValidator{TEntity,TField}"/>, so nothing after the plan has to check it again.
 /// </summary>
 internal sealed class QueryPlanner<TEntity, TField>(BuiltModel<TEntity, TField> model, RequestValidator<TEntity, TField> validator)
     where TEntity : class
@@ -73,7 +74,29 @@ internal sealed class QueryPlanner<TEntity, TField>(BuiltModel<TEntity, TField> 
             _ = model.GetField(filter.Field);
     }
 
-    // A query with no sorts uses the model's default sort.
+    // Works out the sort keys and where the page starts. Fails when the cursor can't be read or was made for different sorts.
     private QueryResult<KeysetPagination<TEntity, TField>> Paginate(IReadOnlyList<Sort<TField>> sorts, string? cursor, int pageSize)
-        => KeysetPagination<TEntity, TField>.Create(model, sorts.Count > 0 ? sorts : model.DefaultSorts, cursor, pageSize);
+    {
+        IReadOnlyList<SortKey<TEntity, TField>> keys = SortKeys(sorts);
+
+        if (string.IsNullOrEmpty(cursor))
+            return QueryResult<KeysetPagination<TEntity, TField>>.Success(new(keys, previousPageEnd: null, pageSize));
+
+        return Cursor.TryDecode(cursor, keys, model.Options.MaxCursorLength, out object?[] previousPageEnd)
+            ? QueryResult<KeysetPagination<TEntity, TField>>.Success(new(keys, previousPageEnd, pageSize))
+            : QueryResult<KeysetPagination<TEntity, TField>>.Failure(ValidationError.CursorInvalid());
+    }
+
+    // The query's sorts, or the model's default sort when it has none. The id goes last, unless it's already a sort, so
+    // no two items tie and nothing is skipped or repeated between pages.
+    private List<SortKey<TEntity, TField>> SortKeys(IReadOnlyList<Sort<TField>> sorts)
+    {
+        IReadOnlyList<Sort<TField>> chosen = sorts.Count > 0 ? sorts : model.DefaultSorts;
+        List<SortKey<TEntity, TField>> keys = [.. chosen.Select(sort => new SortKey<TEntity, TField>(model.GetField(sort.Field), sort.Direction))];
+
+        if (!keys.Exists(key => key.Field == model.Id))
+            keys.Add(new SortKey<TEntity, TField>(model.Id, SortDirection.Asc));
+
+        return keys;
+    }
 }
